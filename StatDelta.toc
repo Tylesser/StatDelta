@@ -6,6 +6,7 @@
 ## SavedVariables: StatDeltaDB
 ## IconTexture: Interface\AddOns\StatDelta\Media\Icon
 ## X-License: MIT
+## X-Curse-Project-ID: 1778444
 ## X-Website: https://github.com/Tylesser/StatDelta
 
 Core.lua
