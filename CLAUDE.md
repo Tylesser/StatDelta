@@ -26,4 +26,4 @@ Shared conventions, release steps and the game client are in the workspace file 
   and a separate box). Never add lines to the shopping (compare) tooltips.
 - The conversion numbers (AP per Strength, Agility per 1% crit, etc.) are the vanilla level 60 values. Change them only
   with a source, and keep the `~` mark on estimates.
-- Not yet tested in game (as of 2026-10-31).
+- v1.0.0 released 2026-11-01 after the user tested it in game.
