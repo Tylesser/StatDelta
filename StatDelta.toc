@@ -1,0 +1,14 @@
+## Interface: 16001, 11508, 11509, 20506, 38000, 50504, 120100, 120105
+## Title: Tylesser - Stat Delta
+## Notes: Shows what you gain or lose (Attack Power, Spell Damage, Health, Crit and more) if you equip an item instead of your current gear.
+## Author: Tylesser
+## Version: @project-version@
+## SavedVariables: StatDeltaDB
+## IconTexture: Interface\AddOns\StatDelta\Media\Icon
+## X-License: MIT
+## X-Website: https://github.com/Tylesser/StatDelta
+
+Core.lua
+Stats.lua
+Tooltip.lua
+Events.lua

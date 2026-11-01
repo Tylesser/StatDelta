@@ -1,0 +1,10 @@
+package-as: StatDelta
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+ignore:
+  - README.md
+  - branding
+  - CLAUDE.md
