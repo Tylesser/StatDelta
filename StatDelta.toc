@@ -9,6 +9,7 @@
 ## X-Curse-Project-ID: 1778444
 ## X-Website: https://github.com/Tylesser/StatDelta
 
+Tylesser.lua
 Core.lua
 Stats.lua
 Tooltip.lua

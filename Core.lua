@@ -5,7 +5,7 @@ ns.defaults = {
   showPrimary = true, -- Strength, Agility, Stamina, Intellect, Spirit
 }
 
-ns.PREFIX = "|cffffd700Tylesser - Stat Delta|r: "
+ns.PREFIX = ns.T.Prefix("Stat Delta")
 
 local tocVersion = select(4, GetBuildInfo())
 -- Classic Era and WoW Forever (Interface 1xxxx) use the original stat formulas, so

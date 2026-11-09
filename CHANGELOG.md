@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+
+- New Tylesser look: the Stat Delta section in tooltips starts with a gold "Stat Delta" heading, and chat messages match the other Tylesser addons.
+
 ## 1.0.0
 
 - First release.

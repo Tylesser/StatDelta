@@ -4,6 +4,9 @@ Shared conventions, release steps and the game client are in the workspace file 
 
 ## Files (load order from StatDelta.toc)
 
+- `Tylesser.lua`: the shared Tylesser "Runestone" look (`ns.T`: stone panels, gold borders, studs, Cinzel, buttons,
+  check boxes, options page header, chat prefix). Loaded first. The same file is in every Tylesser addon: edit them together
+  (see the workspace CLAUDE.md).
 - `Core.lua`: SavedVariables `StatDeltaDB` defaults (`enabled`, `showPrimary`), `ns.CONVERTED`, client checks (`ns.vanillaRules` for
   Interface < 20000, `ns.hasRangedSlot` for < 50000) and `ns.STATS`, the display order, labels and number formats.
 - `Stats.lua`: reads an item's stats from its **tooltip text** (`C_TooltipInfo.GetHyperlink`, or a named scanning

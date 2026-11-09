@@ -198,18 +198,23 @@ local function AddComparisons(tooltip)
     return
   end
   added[tooltip] = true
-  for _, comparison in ipairs(comparisons) do
-    tooltip:AddLine(" ")
-    tooltip:AddLine("Stat Delta: " .. comparison.header, 1, 1, 1)
+  local gold = ns.T.GOLD
+  tooltip:AddLine(" ")
+  tooltip:AddLine(ns.T.TextIcon(ns.T.STUD, 14) .. " STAT DELTA", gold[1], gold[2], gold[3])
+  for index, comparison in ipairs(comparisons) do
+    if index > 1 then
+      tooltip:AddLine(" ")
+    end
+    tooltip:AddLine(comparison.header, 1, 1, 1)
     if #comparison.itemLines == 0 and #comparison.characterLines == 0 then
       tooltip:AddLine("  No stat changes", 0.6, 0.6, 0.6)
     end
     if #comparison.itemLines > 0 then
-      tooltip:AddLine("Item stats", 1, 0.82, 0)
+      tooltip:AddLine("Item stats", gold[1], gold[2], gold[3])
       AddStatLines(tooltip, comparison.itemLines)
     end
     if #comparison.characterLines > 0 then
-      tooltip:AddLine("Your character", 1, 0.82, 0)
+      tooltip:AddLine("Your character", gold[1], gold[2], gold[3])
       AddStatLines(tooltip, comparison.characterLines)
     end
   end
