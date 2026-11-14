@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- The feedback window (`/sdelta feedback`) also points to tylesser.com for the other Tylesser addons.
+
 ## 1.2.0
 
 - Works with DialogueUI's quest reward tooltips, and with the item tooltips of other addons and chat links, not only Blizzard's main tooltip.
