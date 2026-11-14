@@ -38,5 +38,6 @@ Shared conventions, release steps and the game client are in the workspace file 
 - The conversion numbers (AP per Strength, Agility per 1% crit, etc.) are the vanilla level 60 values. Change them only
   with a source, and keep the `~` mark on estimates.
 - v1.0.0 released 2026-11-01 after the user tested it in game.
-- The screenshot `branding/Tylesser - Stat Delta 1.png` appears on tylesser.com with the alt text from the site's
-  `site.json`. Update both if it changes. Keep screenshots out of `Media/`: that folder ships in the zip.
+- tylesser.com and CurseForge show the illustration `branding/statdelta-card.png` (alt text in the site's `site.json`);
+  the in-game screenshot `branding/Tylesser - Stat Delta 1.png` is no longer on the site. Keep images out of `Media/`:
+  that folder ships in the zip.
