@@ -162,8 +162,16 @@ function ns.BuildComparisons(link)
 end
 
 -- Lines in the item tooltip ---------------------------------------------------------
+-- Any item tooltip gets the lines, not only GameTooltip:
+-- * Tooltips built on Blizzard's GameTooltipTemplate (bag, quest and dialogue addons often use
+--   their own): found through TooltipDataProcessor or OnTooltipSetItem.
+-- * Custom tooltips that draw C_TooltipInfo data themselves, like DialogueUI's: frames with
+--   ProcessTooltipData, GetHyperlink, AddDoubleLine and ReprocessInfo. They're found once all
+--   addons have loaded, and ProcessTooltipData is hooked.
+-- The shopping (compare) tooltips never get lines.
 
-local added = {}
+local added = {}  -- tooltip -> true while it shows the lines
+local seen = {}   -- tooltip -> "template" or "custom": tooltips the Shift watcher looks after
 
 local function CompareKeyDown()
   if IsModifiedClick("COMPAREITEMS") then
@@ -171,6 +179,25 @@ local function CompareKeyDown()
   end
   local ok, always = pcall(C_CVar and C_CVar.GetCVarBool or GetCVarBool, "alwaysCompareItems")
   return ok and always
+end
+
+local function IsShoppingTooltip(tooltip)
+  if tooltip == ShoppingTooltip1 or tooltip == ShoppingTooltip2
+    or tooltip == ItemRefShoppingTooltip1 or tooltip == ItemRefShoppingTooltip2 then
+    return true
+  end
+  local ok, name = pcall(tooltip.GetName, tooltip)
+  return ok and type(name) == "string" and name:find("Shopping") ~= nil
+end
+
+local function ItemLink(tooltip)
+  if seen[tooltip] == "custom" then
+    return tooltip:GetHyperlink()
+  end
+  if tooltip.GetItem then
+    local _, link = tooltip:GetItem()
+    return link
+  end
 end
 
 local function AddStatLines(tooltip, lines)
@@ -185,12 +212,14 @@ local function AddStatLines(tooltip, lines)
 end
 
 -- Adds the stat changes to the bottom of the tooltip, only while the compare key (Shift) is held.
-local function AddComparisons(tooltip)
+-- show: call tooltip:Show() afterwards so the tooltip resizes (not needed inside a custom
+-- tooltip's own build, which shows itself when done).
+local function AddComparisons(tooltip, show)
   if added[tooltip] or not ns.db or not ns.db.enabled or not CompareKeyDown() then
     return
   end
-  local _, link = tooltip:GetItem()
-  if not link then
+  local ok, link = pcall(ItemLink, tooltip)
+  if not (ok and link) then
     return
   end
   local comparisons = ns.BuildComparisons(link)
@@ -218,18 +247,24 @@ local function AddComparisons(tooltip)
       AddStatLines(tooltip, comparison.characterLines)
     end
   end
-  tooltip:Show()
+  if show ~= false then
+    tooltip:Show()
+  end
 end
 
 -- Rebuilds the tooltip from scratch (adding the stat changes again only if Shift is held).
 -- If the tooltip can't be rebuilt, its lines stay until the mouse moves away.
 local function RefreshTooltip(tooltip)
   added[tooltip] = nil
+  if seen[tooltip] == "custom" then
+    tooltip:ReprocessInfo()
+    return
+  end
   if tooltip.RefreshData then
     tooltip:RefreshData()
     return
   end
-  local owner = tooltip:GetOwner()
+  local owner = tooltip.GetOwner and tooltip:GetOwner()
   local onEnter = owner and owner.GetScript and owner:GetScript("OnEnter")
   if onEnter and owner:IsMouseOver() then
     onEnter(owner)
@@ -238,44 +273,138 @@ local function RefreshTooltip(tooltip)
   end
 end
 
--- Equipment, level or settings changed: rebuild the open tooltip.
+-- First time a template tooltip shows an item: forget the lines whenever it's cleared.
+local function WatchTemplateTooltip(tooltip)
+  if seen[tooltip] then
+    return
+  end
+  seen[tooltip] = "template"
+  if tooltip.HookScript then
+    tooltip:HookScript("OnTooltipCleared", function(self)
+      added[self] = nil
+    end)
+  end
+end
+
+-- Hidden tooltips that addons use to read item text (scanners) must never get lines: other
+-- tooltips than GameTooltip count only while they're visible and placed on screen.
+local function IsOnScreen(tooltip)
+  if tooltip == GameTooltip then
+    return true
+  end
+  return tooltip:IsVisible() and tooltip:GetLeft() ~= nil
+end
+
+local function OnTemplateItem(tooltip)
+  local ok, onScreen = pcall(IsOnScreen, tooltip)
+  if IsShoppingTooltip(tooltip) or not (ok and onScreen) then
+    return
+  end
+  WatchTemplateTooltip(tooltip)
+  AddComparisons(tooltip)
+end
+
+-- Custom tooltips (DialogueUI and others built the same way).
+local function IsCustomTooltip(frame)
+  return type(frame) == "table" and not seen[frame]
+    and type(frame.ProcessTooltipData) == "function" and type(frame.GetHyperlink) == "function"
+    and type(frame.AddDoubleLine) == "function" and type(frame.ReprocessInfo) == "function"
+    and type(frame.ClearLines) == "function"
+end
+
+local function WatchCustomTooltip(tooltip)
+  seen[tooltip] = "custom"
+  hooksecurefunc(tooltip, "ClearLines", function(self)
+    added[self] = nil
+  end)
+  hooksecurefunc(tooltip, "ProcessTooltipData", function(self, tooltipData)
+    if tooltipData and tooltipData.isItem then
+      AddComparisons(self, false)
+    end
+  end)
+end
+
+local function FindCustomTooltips()
+  if not EnumerateFrames then
+    return
+  end
+  local frame = EnumerateFrames()
+  while frame do
+    local ok, match = pcall(IsCustomTooltip, frame)
+    if ok and match then
+      WatchCustomTooltip(frame)
+    end
+    frame = EnumerateFrames(frame)
+  end
+end
+
+-- Equipment, level or settings changed: rebuild the open tooltips that show the lines.
 function ns.Refresh()
-  if added[GameTooltip] and GameTooltip:IsShown() then
-    RefreshTooltip(GameTooltip)
+  local open = {}
+  for tooltip in pairs(added) do
+    if tooltip:IsShown() then
+      open[#open + 1] = tooltip
+    end
+  end
+  for _, tooltip in ipairs(open) do
+    RefreshTooltip(tooltip)
+  end
+end
+
+-- Shift pressed or released while an item tooltip is open.
+local function OnKeyChange(down)
+  for tooltip in pairs(seen) do
+    if tooltip:IsShown() then
+      if down then
+        if seen[tooltip] == "custom" then
+          RefreshTooltip(tooltip) -- rebuilt with the lines, as Shift is down now
+        else
+          AddComparisons(tooltip)
+        end
+      elseif added[tooltip] then
+        RefreshTooltip(tooltip)
+      end
+    end
   end
 end
 
 function ns.HookTooltips()
+  seen[GameTooltip] = "template"
   GameTooltip:HookScript("OnTooltipCleared", function(self)
     added[self] = nil
   end)
   if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall and Enum and Enum.TooltipDataType then
-    TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tooltip)
-      if tooltip == GameTooltip then
-        AddComparisons(tooltip)
-      end
-    end)
+    TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, OnTemplateItem)
   else
-    GameTooltip:HookScript("OnTooltipSetItem", AddComparisons)
+    GameTooltip:HookScript("OnTooltipSetItem", OnTemplateItem)
+    -- clients without TooltipDataProcessor: other template tooltips are hooked when first shown
+    if ItemRefTooltip and ItemRefTooltip.HookScript then
+      ItemRefTooltip:HookScript("OnTooltipSetItem", OnTemplateItem)
+    end
   end
 
-  -- Shift pressed or released while the tooltip is open.
+  local watcher = CreateFrame("Frame")
+  watcher:RegisterEvent("PLAYER_LOGIN")
+  watcher:SetScript("OnEvent", function(self)
+    -- every addon has loaded by now, so their custom tooltips exist
+    FindCustomTooltips()
+    self:UnregisterEvent("PLAYER_LOGIN")
+  end)
+  if IsLoggedIn and IsLoggedIn() then
+    FindCustomTooltips()
+  end
+
   local elapsed, keyDown = 0, false
-  GameTooltip:HookScript("OnUpdate", function(self, delta)
+  watcher:SetScript("OnUpdate", function(_, delta)
     elapsed = elapsed + delta
     if elapsed < 0.05 then
       return
     end
     elapsed = 0
     local down = CompareKeyDown() and true or false
-    if down == keyDown then
-      return
-    end
-    keyDown = down
-    if down then
-      AddComparisons(self)
-    elseif added[self] then
-      RefreshTooltip(self)
+    if down ~= keyDown then
+      keyDown = down
+      OnKeyChange(down)
     end
   end)
 end

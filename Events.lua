@@ -34,6 +34,9 @@ SlashCmdList.STATDELTA = function(msg)
   if msg == "on" or msg == "off" then
     ns.db.enabled = msg == "on"
     print(ns.PREFIX .. "stat changes " .. OnOff(ns.db.enabled) .. ".")
+  elseif msg == "feedback" then
+    ns.T.ShowFeedback()
+    return
   elseif msg == "primary" then
     ns.db.showPrimary = not ns.db.showPrimary
     print(ns.PREFIX .. "Strength, Agility, Stamina, Intellect and Spirit " .. OnOff(ns.db.showPrimary) .. ".")
@@ -42,6 +45,7 @@ SlashCmdList.STATDELTA = function(msg)
     print("  /sdelta on | off: turn the stat changes on or off")
     print("  /sdelta primary: show or hide Strength, Agility, Stamina, Intellect and Spirit ("
       .. OnOff(ns.db.showPrimary) .. ")")
+    print("  /sdelta feedback: report a bug or suggest an idea")
   end
   ns.Refresh()
 end

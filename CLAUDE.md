@@ -15,12 +15,20 @@ Shared conventions, release steps and the game client are in the workspace file 
   Attack Power, Health, Mana, Armor; Crit/Dodge/Spell Crit only at level 60, marked as estimates).
 - `Tooltip.lua`: maps the item's equip location to the equipped items it would replace (two-handers replace main and
   off hand; one-handers compare with each dual-wielded weapon; rings/trinkets compare with both or with the empty slot),
-  and adds one "Stat Delta: Compared to ..." block per comparison to the bottom of `GameTooltip`, each with an
+  and adds one "Stat Delta: Compared to ..." block per comparison to the bottom of the item tooltip, each with an
   "Item stats" section (printed stats) and a "Your character" section (`ns.CONVERTED` totals, when they differ). Added
-  only while `IsModifiedClick("COMPAREITEMS")` (Shift) or the `alwaysCompareItems` CVar is on, via `TooltipDataProcessor`
-  or `OnTooltipSetItem`. A throttled `GameTooltip` OnUpdate hook watches the key: pressing it appends the lines,
-  releasing it rebuilds the tooltip (`RefreshData`, or the owner's OnEnter). Nothing is shown for an already equipped
-  item. Chat links (`ItemRefTooltip`) are not handled.
+  only while `IsModifiedClick("COMPAREITEMS")` (Shift) or the `alwaysCompareItems` CVar is on. Any item tooltip counts
+  (the user asked for DialogueUI and "any addon", 2026-11-15):
+  - Template tooltips (GameTooltip, ItemRefTooltip, other addons' GameTooltipTemplate frames) via `TooltipDataProcessor`
+    for any tooltip, or `OnTooltipSetItem` on GameTooltip and ItemRefTooltip on older clients. Never shopping tooltips
+    (name contains "Shopping"), and tooltips other than GameTooltip only while visible and placed (`GetLeft()`), so
+    other addons' hidden scanning tooltips are never changed.
+  - Custom tooltips that draw `C_TooltipInfo` data themselves, like DialogueUI's `SharedTooltip`: found at
+    `PLAYER_LOGIN` by scanning `EnumerateFrames` for `ProcessTooltipData` + `GetHyperlink` + `AddDoubleLine` +
+    `ReprocessInfo` + `ClearLines`; `ProcessTooltipData` and `ClearLines` are hooked with `hooksecurefunc`.
+  - One throttled watcher frame follows the key for every tooltip seen: pressing it appends the lines (custom tooltips
+    are reprocessed), releasing it rebuilds the tooltip (`ReprocessInfo`, `RefreshData`, or the owner's OnEnter).
+  Nothing is shown for an already equipped item.
 - `Events.lua`: `ADDON_LOADED` setup and the slash commands `/sdelta` and `/statdelta` (`on`, `off`, `primary`).
 
 ## Rules

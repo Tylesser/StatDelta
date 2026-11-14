@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+- Works with DialogueUI's quest reward tooltips, and with the item tooltips of other addons and chat links, not only Blizzard's main tooltip.
+- A `/sdelta feedback` command: it shows the link to tylesser.com/feedback, where you can report a bug or suggest an idea.
+
 ## 1.1.0
 
 - New Tylesser look: the Stat Delta section in tooltips starts with a gold "Stat Delta" heading, and chat messages match the other Tylesser addons.

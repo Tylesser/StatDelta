@@ -6,7 +6,8 @@ A World of Warcraft addon that shows **what you gain or lose** if you equip an i
 
 ## Features
 
-- **In the item's tooltip, only while Shift is held.** Without Shift the tooltip looks as usual, and Blizzard's compare tooltips stay unchanged. It uses the same key as Blizzard's compare (Shift unless you changed it) and also follows the "always compare items" option. Works for items in your bags, at vendors, in the auction house, on loot and on other players (inspect).
+- **In the item's tooltip, only while Shift is held.** Without Shift the tooltip looks as usual, and Blizzard's compare tooltips stay unchanged. It uses the same key as Blizzard's compare (Shift unless you changed it) and also follows the "always compare items" option. Works for items in your bags, at vendors, in the auction house, on loot, on other players (inspect) and in chat links.
+- **Works with other addons' tooltips,** such as DialogueUI's quest reward tooltips, and the item tooltips of bag and quest addons.
 - **Two sections:** **Item stats** are the differences in the stats printed on the items. **Your character** shows the totals after your class turns stats into other stats, when they differ from the printed ones.
 - **Stats from other stats** (Classic Era and WoW Forever), based on your class:
   - Strength and Agility → **Attack Power** and **Ranged Attack Power**
@@ -29,6 +30,11 @@ Hold Shift while hovering over an item. To turn the addon or parts of it on and 
 - `/sdelta`: show the settings
 - `/sdelta on` / `/sdelta off`: turn the stat changes on or off
 - `/sdelta primary`: show or hide Strength, Agility, Stamina, Intellect and Spirit
+- `/sdelta feedback`: get the link to report a bug or suggest an idea
+
+## Feedback
+
+Found a bug or have an idea? Type `/sdelta feedback` in game to get the link, or go straight to [tylesser.com/feedback](https://tylesser.com/feedback/#statdelta).
 
 ## Installation
 
