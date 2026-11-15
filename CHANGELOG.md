@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.0
+
+- Options page: Esc > Options > AddOns > Tylesser - Stat Delta, also opened with `/sdelta` and from the addon menu next to the minimap.
+- Upgrade score: pick a preset for your class and role, and the Stat Delta section shows "Upgrade: +4.2%" (or the difference in points) for each comparison. The presets are rough starting values; you can change the points for every stat. Saved per character, off until you pick a preset; "Off" clears the points. For Classic Era and WoW Forever only: on other game versions the score and arrows are off.
+- Upgrade arrows: once a preset is picked, a green arrow in the top right corner marks upgrades in Blizzard's bags, in Baganator and on quest rewards. Can be turned off.
+- Strength, Agility, Stamina, Intellect, Spirit, Armor, Block, resistances and weapon damage, speed and DPS are now read on every client language. "Equip:" effects still need an English client.
+- Fixed: Weapon DPS was never counted.
+- Item tooltips of other addons and chat links (ItemRefTooltip) get the Stat Delta section more reliably, also before they are on screen.
+
 ## 1.2.1
 
 - The feedback window (`/sdelta feedback`) also points to tylesser.com for the other Tylesser addons.

@@ -142,20 +142,245 @@ local function ParseEquip(text, stats)
   end
 end
 
-local function ParseLine(text, stats)
+-- Localized lines ---------------------------------------------------------------------
+-- Primary stats, armor, block, resistances and weapon damage, DPS and speed are read with patterns
+-- built from Blizzard's own format strings (GlobalStrings), so they work on every client language.
+-- Equip effects ("Equip: Increases damage and healing...") have no such strings: English only.
+
+-- "2.60", "2,60" and "1.234,5" for decimals (the last separator is the decimal point);
+-- "1,234", "1.234" and "1 234" (space or no-break space) for whole numbers.
+local function ToNumber(text, decimal)
+  if not text then
+    return nil
+  end
+  text = text:gsub("[%s\194\160]", "")
+  if decimal then
+    local whole, fraction = text:match("^([%d%.,]-)[%.,](%d+)$")
+    if whole then
+      return tonumber((whole:gsub("[%.,]", "")) .. "." .. fraction)
+    end
+  end
+  return tonumber((text:gsub("[%.,]", "")))
+end
+
+-- Numbers start with a digit and may contain "." "," and spaces (thousands separators).
+local NUMBER = "(%d[%d%.,%s\194\160]*)"
+local CAPTURE = { sign = "([%+%-]?)", int = NUMBER, dec = NUMBER, word = "(.-)" }
+
+-- Turns a printf-style format ("%c%d Strength", "%2$s ...") into an anchored Lua pattern.
+-- kinds: the kind of each argument, by position. Returns the pattern and the argument
+-- position of each capture, or nil if the format has something unexpected.
+local function FormatToPattern(fmt, kinds)
+  if type(fmt) ~= "string" or fmt == "" then
+    return nil
+  end
+  local parts, order = { "^" }, {}
+  local position, nextArg = 1, 1
+  while position <= #fmt do
+    local char = fmt:sub(position, position)
+    if char == "%" then
+      local rest = position + 1
+      local arg
+      local index, afterIndex = fmt:match("^(%d+)%$()", rest)
+      if index then
+        arg, rest = tonumber(index), afterIndex
+      end
+      local conversion, after = fmt:match("^[%-%+ #0]*%d*%.?%d*([%a%%])()", rest)
+      if not conversion then
+        return nil
+      end
+      if conversion == "%" then
+        table.insert(parts, "%%")
+      else
+        if not arg then
+          arg, nextArg = nextArg, nextArg + 1
+        end
+        local kind = kinds[arg]
+        if not kind then
+          return nil
+        end
+        table.insert(parts, CAPTURE[kind])
+        table.insert(order, arg)
+      end
+      position = after
+    else
+      if char:find("[%^%$%(%)%.%[%]%*%+%-%?]") then
+        char = "%" .. char
+      end
+      table.insert(parts, char)
+      position = position + 1
+    end
+  end
+  table.insert(parts, "$")
+  return table.concat(parts), order
+end
+
+-- Matches `text` against a pattern from FormatToPattern; returns the values by argument position.
+local function MatchFormat(text, rule)
+  local captures = { text:match(rule.pattern) }
+  if #captures == 0 then
+    return nil
+  end
+  local values = {}
+  for i, arg in ipairs(rule.order) do
+    values[arg] = captures[i]
+  end
+  return values
+end
+
+local SCHOOL_GLOBALS = {
+  -- key, SPELL_SCHOOLn_CAP, DAMAGE_SCHOOLn
+  { "holy", 1, 2 }, { "fire", 2, 3 }, { "nature", 3, 4 }, { "frost", 4, 5 }, { "shadow", 5, 6 }, { "arcane", 6, 7 },
+}
+
+-- name of a school (lower case, any language) -> resistance key
+local function SchoolNames()
+  local names = {}
+  for _, school in ipairs(SCHOOL_GLOBALS) do
+    local key = school[1] .. "Resistance"
+    names[school[1]] = key
+    for _, global in ipairs({ "SPELL_SCHOOL" .. school[2] .. "_CAP", "DAMAGE_SCHOOL" .. school[3] }) do
+      local name = _G[global]
+      if type(name) == "string" and name ~= "" then
+        names[name:lower()] = key
+      end
+    end
+  end
+  return names
+end
+
+-- Each rule: global string, argument kinds, what a match adds.
+local LOCALIZED_RULES = {
+  { "ITEM_MOD_STRENGTH", { "sign", "int" }, "strength" },
+  { "ITEM_MOD_AGILITY", { "sign", "int" }, "agility" },
+  { "ITEM_MOD_STAMINA", { "sign", "int" }, "stamina" },
+  { "ITEM_MOD_INTELLECT", { "sign", "int" }, "intellect" },
+  { "ITEM_MOD_SPIRIT", { "sign", "int" }, "spirit" },
+  { "ARMOR_TEMPLATE", { "int" }, "armor" },
+  { "SHIELD_BLOCK_TEMPLATE", { "int" }, "blockValue" },
+  { "ITEM_RESIST_ALL", { "sign", "int" }, NAMED["all resistances"] },
+  { "ITEM_RESIST_SINGLE", { "sign", "int", "word" }, "resistance" },
+  { "DPS_TEMPLATE", { "dec" }, "dps" },
+  { "DAMAGE_TEMPLATE", { "int", "int" }, "damage" },
+  { "DAMAGE_TEMPLATE_WITH_SCHOOL", { "int", "int", "word" }, "damage" },
+}
+
+local localized, schoolNames, speedPatterns, skipPrefixes
+
+local function Escape(text)
+  return (text:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0"))
+end
+
+-- Built on first use, from whatever global strings this client has (every one is optional).
+local function BuildLocalized()
+  localized = {}
+  for _, rule in ipairs(LOCALIZED_RULES) do
+    local pattern, order = FormatToPattern(_G[rule[1]], rule[2])
+    if pattern then
+      table.insert(localized, { pattern = pattern, order = order, kinds = rule[2], target = rule[3] })
+    end
+  end
+  schoolNames = SchoolNames()
+  -- Weapon speed (right text): "Speed 2.60". The global is the word, or on some clients a format.
+  speedPatterns = {}
+  for _, global in ipairs({ "WEAPON_SPEED", "SPEED" }) do
+    local speed = _G[global]
+    if type(speed) == "string" and speed ~= "" then
+      local pattern = speed:find("%%") and FormatToPattern(speed, { "dec" })
+      if not pattern and not speed:find("%%") then
+        pattern = "^" .. Escape(speed) .. "%s*" .. NUMBER .. "$"
+      end
+      if pattern then
+        table.insert(speedPatterns, pattern)
+      end
+    end
+  end
+  table.insert(speedPatterns, "^Speed%s*" .. NUMBER .. "$") -- English fallback
+  -- "Use:" and "Chance on hit:" in this client's language
+  skipPrefixes = {}
+  for _, global in ipairs({ "ITEM_SPELL_TRIGGER_ONUSE", "ITEM_SPELL_TRIGGER_ONPROC" }) do
+    local prefix = _G[global]
+    if type(prefix) == "string" and prefix ~= "" then
+      table.insert(skipPrefixes, "^" .. Escape(prefix))
+    end
+  end
+end
+
+-- Adds a localized line's stat; weapon damage goes to `weapon` (min, max) for the DPS fallback.
+local function ParseLocalized(text, stats, weapon)
+  for _, rule in ipairs(localized) do
+    local values = MatchFormat(text, rule)
+    if values then
+      if rule.target == "damage" then
+        weapon.min, weapon.max = ToNumber(values[1]), ToNumber(values[2])
+        return true
+      elseif rule.target == "dps" then
+        local dps = ToNumber(values[1], true)
+        if dps then
+          weapon.dps = dps
+          return true
+        end
+      elseif rule.target == "resistance" then
+        local key = schoolNames[strtrim(values[3] or ""):lower()]
+        local amount = ToNumber(values[2])
+        if key and amount then
+          Add(stats, key, amount * (values[1] == "-" and -1 or 1))
+          return true
+        end
+      else
+        local signIndex, amountIndex = 0, 1
+        if rule.kinds[1] == "sign" then
+          signIndex, amountIndex = 1, 2
+        end
+        local amount = ToNumber(values[amountIndex])
+        if amount then
+          Add(stats, rule.target, amount * (values[signIndex] == "-" and -1 or 1))
+          return true
+        end
+      end
+    end
+  end
+  return false
+end
+
+local function ParseLine(text, stats, weapon, rightText)
+  if not localized then
+    BuildLocalized()
+  end
+  weapon = weapon or {}
+  if rightText then
+    local right = strtrim((rightText:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")))
+    for _, pattern in ipairs(speedPatterns) do
+      local speed = right:match(pattern)
+      if speed then
+        weapon.speed = ToNumber(speed, true)
+        break
+      end
+    end
+  end
   text = text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
   text = strtrim(text)
   if text == "" then
+    return
+  end
+  -- Weapon DPS first: the line starts with "(" like set bonuses do. The localized patterns are
+  -- anchored at both ends, so set bonus and "Use:" lines never match them.
+  local dps = text:match("^%(([%d%.,]+) damage per second%)$")
+  if dps then
+    weapon.dps = ToNumber(dps, true)
+    return
+  end
+  if ParseLocalized(text, stats, weapon) then
     return
   end
   -- Set bonuses, on-use and on-hit effects are not permanent stats.
   if text:find("^%(") or text:find("^Use:") or text:find("^Chance on hit:") or text:find("^Set:") then
     return
   end
-  local dps = text:match("^%(([%d%.,]+) damage per second%)$")
-  if dps then
-    Add(stats, "dps", tonumber((dps:gsub(",", ""))))
-    return
+  for _, prefix in ipairs(skipPrefixes) do
+    if text:find(prefix) then
+      return
+    end
   end
   local equip = text:match("^Equip: (.+)$")
   if equip then
@@ -178,8 +403,18 @@ end
 local SCANNER_NAME = "TylesserStatDeltaScanner"
 local scanner
 
+-- Blizzard writes what this character can't use (armor type, weapon skill, class, level) in red.
+local function IsRed(r, g, b)
+  return type(r) == "number" and r > 0.95 and (g or 1) < 0.2 and (b or 1) < 0.2
+end
+
+local function ColorIsRed(color)
+  return type(color) == "table" and IsRed(color.r, color.g, color.b)
+end
+
+-- Returns the tooltip lines ({ left, right }) and whether any line is red.
 local function GetTooltipLines(link)
-  local lines = {}
+  local lines, red = {}, false
   if C_TooltipInfo and C_TooltipInfo.GetHyperlink then
     local data = C_TooltipInfo.GetHyperlink(link)
     if data and data.lines then
@@ -188,10 +423,13 @@ local function GetTooltipLines(link)
           TooltipUtil.SurfaceArgs(line)
         end
         if line.leftText then
-          table.insert(lines, line.leftText)
+          table.insert(lines, { line.leftText, line.rightText })
+        end
+        if ColorIsRed(line.leftColor) or (line.rightText and ColorIsRed(line.rightColor)) then
+          red = true
         end
       end
-      return lines
+      return lines, red
     end
   end
   if not scanner then
@@ -201,17 +439,51 @@ local function GetTooltipLines(link)
   scanner:ClearLines()
   scanner:SetHyperlink(link)
   for i = 1, scanner:NumLines() do
-    local fontString = _G[SCANNER_NAME .. "TextLeft" .. i]
-    local text = fontString and fontString:GetText()
+    local left = _G[SCANNER_NAME .. "TextLeft" .. i]
+    local right = _G[SCANNER_NAME .. "TextRight" .. i]
+    local text = left and left:GetText()
+    local rightText = right and right:IsShown() and right:GetText() or nil
     if text then
-      table.insert(lines, text)
+      table.insert(lines, { text, rightText })
+      if IsRed(left:GetTextColor()) then
+        red = true
+      end
+    end
+    if rightText and IsRed(right:GetTextColor()) then
+      red = true
     end
   end
   scanner:Hide()
-  return lines
+  return lines, red
+end
+
+-- Parses tooltip lines: plain strings, or { leftText, rightText }.
+local function ParseAll(lines)
+  local stats, weapon = {}, {}
+  for _, line in ipairs(lines) do
+    if type(line) == "table" then
+      ParseLine(line[1], stats, weapon, line[2])
+    else
+      ParseLine(line, stats, weapon)
+    end
+  end
+  -- Weapon DPS from its own line, or from the damage and speed lines.
+  if weapon.dps then
+    Add(stats, "dps", weapon.dps)
+  elseif weapon.min and weapon.max and weapon.speed and weapon.speed > 0 then
+    Add(stats, "dps", math.floor((weapon.min + weapon.max) / 2 / weapon.speed * 10 + 0.5) / 10)
+  end
+  return stats
 end
 
 local cache = {}
+local usableCache = {}
+
+local function Scan(link)
+  local lines, red = GetTooltipLines(link)
+  cache[link] = ParseAll(lines)
+  usableCache[link] = not red
+end
 
 -- Stats printed on the item (no conversions). Returns nil while the item isn't loaded yet.
 function ns.GetItemStats(link)
@@ -221,20 +493,38 @@ function ns.GetItemStats(link)
   if not GetItemInfo(link) then
     return nil
   end
-  local stats = {}
-  for _, text in ipairs(GetTooltipLines(link)) do
-    ParseLine(text, stats)
+  Scan(link)
+  return cache[link]
+end
+
+-- False when the tooltip has red text (wrong armor type or weapon skill, class, level too low).
+-- Returns nil while the item isn't loaded yet.
+function ns.IsItemUsable(link)
+  if usableCache[link] == nil then
+    if not GetItemInfo(link) then
+      return nil
+    end
+    Scan(link)
   end
-  cache[link] = stats
-  return stats
+  return usableCache[link]
+end
+
+-- Level up or new weapon skill: what's red changes, the stats don't.
+function ns.ForgetUsable()
+  usableCache = {}
 end
 
 function ns.ParseLines(lines)
-  local stats = {}
-  for _, text in ipairs(lines) do
-    ParseLine(text, stats)
+  if not localized then
+    BuildLocalized()
   end
-  return stats
+  return ParseAll(lines)
+end
+
+-- For tests: rebuild the localized patterns after changing the global strings.
+function ns.RebuildLocalized()
+  BuildLocalized()
+  cache, usableCache = {}, {}
 end
 
 function ns.SumStats(list)

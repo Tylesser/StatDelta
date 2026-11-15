@@ -1,8 +1,20 @@
 local _, ns = ...
 
+ns.TITLE = "Tylesser - Stat Delta"
+
+-- StatDeltaDB (account wide)
 ns.defaults = {
   enabled = true,
   showPrimary = true, -- Strength, Agility, Stamina, Intellect, Spirit
+  showScore = true,   -- "Upgrade: +4.2%" lines, once a score preset is chosen
+  showArrows = true,  -- green arrows on bag and quest reward items, once a score preset is chosen
+}
+
+-- StatDeltaCharDB (per character): the upgrade score.
+-- preset: nil (score off), a preset id from Score.lua, or "custom"; weights: stat key -> points.
+ns.charDefaults = {
+  weights = {},
+  edited = false,
 }
 
 ns.PREFIX = ns.T.Prefix("Stat Delta")

@@ -29,6 +29,7 @@ local RANGED_TYPES = { INVTYPE_RANGED = true, INVTYPE_RANGEDRIGHT = true, INVTYP
 local function EquipLoc(link)
   return link and select(4, GetItemInfoInstant(link))
 end
+ns.EquipLoc = EquipLoc
 
 local function IsTwoHand(equipLoc)
   return equipLoc == "INVTYPE_2HWEAPON" or (not ns.hasRangedSlot and RANGED_TYPES[equipLoc] and equipLoc ~= "INVTYPE_RELIC")
@@ -77,6 +78,7 @@ local function FindReplaced(link, equipLoc)
   end
   return { { first }, { second } }
 end
+ns.FindReplaced = FindReplaced
 
 local function FormatValue(value, fmt)
   if fmt == "pct" then
@@ -111,6 +113,8 @@ function ns.BuildComparisons(link)
     return nil
   end
   local newTotal, newEstimated = ns.WithConversions(newStats)
+  local weights = ns.ScoreShown and ns.ScoreShown() and ns.ActiveWeights()
+  local newScore = weights and ns.Score(newStats, weights)
 
   local comparisons = {}
   for _, replaced in ipairs(replacedList) do
@@ -131,6 +135,9 @@ function ns.BuildComparisons(link)
       local oldStats = ns.SumStats(oldList)
       local oldTotal, oldEstimated = ns.WithConversions(oldStats)
       local comparison = { itemLines = {}, characterLines = {} }
+      if weights then
+        comparison.score = { new = newScore, old = ns.Score(oldStats, weights) }
+      end
       if #links == 0 then
         comparison.header = "Compared to an empty slot:"
       else
@@ -235,6 +242,10 @@ local function AddComparisons(tooltip, show)
       tooltip:AddLine(" ")
     end
     tooltip:AddLine(comparison.header, 1, 1, 1)
+    if comparison.score then
+      local text, r, g, b = ns.ScoreText(comparison.score.new, comparison.score.old)
+      tooltip:AddLine(text, r, g, b)
+    end
     if #comparison.itemLines == 0 and #comparison.characterLines == 0 then
       tooltip:AddLine("  No stat changes", 0.6, 0.6, 0.6)
     end
@@ -286,13 +297,17 @@ local function WatchTemplateTooltip(tooltip)
   end
 end
 
--- Hidden tooltips that addons use to read item text (scanners) must never get lines: other
--- tooltips than GameTooltip count only while they're visible and placed on screen.
+-- Hidden tooltips that addons use to read item text (scanners) must never get lines. GameTooltip and
+-- ItemRefTooltip always count; other tooltips count when visible or anchored somewhere (a scanner
+-- owned with ANCHOR_NONE has no points; a real tooltip may not be shown yet when it gets its item).
 local function IsOnScreen(tooltip)
-  if tooltip == GameTooltip then
+  if tooltip == GameTooltip or tooltip == ItemRefTooltip then
     return true
   end
-  return tooltip:IsVisible() and tooltip:GetLeft() ~= nil
+  if tooltip:IsVisible() then
+    return true
+  end
+  return tooltip.GetNumPoints ~= nil and tooltip:GetNumPoints() > 0
 end
 
 local function OnTemplateItem(tooltip)

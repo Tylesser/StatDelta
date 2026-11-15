@@ -4,6 +4,7 @@
 ## Author: Tylesser
 ## Version: @project-version@
 ## SavedVariables: StatDeltaDB
+## SavedVariablesPerCharacter: StatDeltaCharDB
 ## IconTexture: Interface\AddOns\StatDelta\Media\Icon
 ## X-License: MIT
 ## X-Curse-Project-ID: 1778444
@@ -13,5 +14,8 @@
 Tylesser.lua
 Core.lua
 Stats.lua
+Score.lua
 Tooltip.lua
+Arrows.lua
+Options.lua
 Events.lua

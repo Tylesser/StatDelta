@@ -18,16 +18,22 @@ A World of Warcraft addon that shows **what you gain or lose** if you equip an i
 - **Rings and trinkets** are compared with both equipped ones, or with the empty slot if you have one free.
 - **Weapons:** a two-handed weapon is compared with your main hand and off hand together. A one-handed weapon is compared with each weapon you dual wield. An off-hand item is compared with your two-handed weapon if you use one.
 - Set bonuses, "Use:" and "Chance on hit:" effects are not counted.
+- **Upgrade score (optional):** pick a preset for your class and role in the options (for example Warrior Tank or DPS, Priest Healer or Shadow, Druid Bear, Cat, Healer or Balance) and Stat Delta adds a line like **Upgrade: +4.2%** under each "Compared to" heading: green if the item scores higher than what you wear, red if lower. When the equipped item scores 0 (or the slot is empty), it shows the difference in points instead. The presets are **rough starting values** for Classic Era, not exact numbers: you can change the points for every stat. The score is saved per character and is off until you pick a preset. Choosing "Off" clears the points. The score is made for **Classic Era and WoW Forever**: on other game versions gear has ratings the score doesn't count, so the score and the arrows are off there.
+- **Upgrade arrows:** once you've picked a preset, items that score higher than what they'd replace get a small green arrow in the top right corner in your bags (Blizzard's bags and Baganator) and on quest rewards. The arrows don't need Shift. Items your character can't use yet (wrong armor type or weapon skill, level too low) get no arrow. You can turn the arrows off in the options.
 
 On other game versions (TBC, Wrath, Mists, Retail) the addon shows only the stats printed on the items, without the conversions.
 
-The addon reads the item tooltip text, so it needs an **English** game client.
+The addon reads the item tooltip text. On every client language it reads Strength, Agility, Stamina, Intellect, Spirit, Armor, Block, resistances and weapon damage, speed and DPS, using the game's own words for them (numbers written like 1,234, 1.234 or 1 234 all work). The "Equip:" effects (Spell Damage, Healing, Attack Power, Hit, Crit and the others) are read only on an **English** client; on other languages those lines are skipped.
+
+### How the score counts stats
+
+The score of an item is the sum of each stat times its points. Attack Power, Ranged Attack Power, Health, Mana and Armor count your character's totals, so they already include what Strength, Agility, Stamina and Intellect give you. All other stats count as printed on the item. Give points to a stat **or** to what it turns into, not both: the Warrior DPS preset gives points to Attack Power (Strength counts through it) and only a few to Agility, for its crit.
 
 ## Usage
 
-Hold Shift while hovering over an item. To turn the addon or parts of it on and off:
+Hold Shift while hovering over an item. The options are in Esc > Options > AddOns > Tylesser - Stat Delta, or type `/sdelta`. On WoW Forever and Retail, the addon menu next to the minimap opens them too.
 
-- `/sdelta`: show the settings
+- `/sdelta` or `/sdelta options`: open the options (stat changes, upgrade score, arrows)
 - `/sdelta on` / `/sdelta off`: turn the stat changes on or off
 - `/sdelta primary`: show or hide Strength, Agility, Stamina, Intellect and Spirit
 - `/sdelta feedback`: get the link to report a bug or suggest an idea
