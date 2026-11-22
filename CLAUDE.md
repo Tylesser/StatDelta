@@ -40,6 +40,11 @@ Shared conventions, release steps and the game client are in the workspace file 
   - One throttled watcher frame follows the key for every tooltip seen: pressing it appends the lines (custom tooltips
     are reprocessed), releasing it rebuilds the tooltip (`ReprocessInfo`, `RefreshData`, or the owner's OnEnter).
   Nothing is shown for an already equipped item.
+- One score per talent group (2026-11-22, Score.lua `ns.SyncTalentScore`): the live `preset` / `weights` / `edited`
+  belong to `StatDeltaCharDB.talentGroup`; a swap stores them in `talentScores[group]` and loads the other group's
+  (first time: a copy). The group comes from C_SpecializationInfo.GetActiveSpecGroup (else GetActiveTalentGroup), only
+  once `C_SpecializationInfo.IsInitialized()`; synced on PLAYER_LOGIN, PLAYER_TALENT_UPDATE and
+  ACTIVE_TALENT_GROUP_CHANGED. The twin is Codex's Modules/StatDelta (CodexCharDB.statdelta).
 - `Score.lua`: the upgrade score. `ns.PRESETS` per class (rough Classic Era weights), `ns.WEIGHT_STATS` (the stats with
   an edit box), `ns.Score(stats, weights)`, `ns.ScoreText`, `ns.SetPreset` (nil = off, which also clears the weights), `ns.SetWeight`
   (rejects NaN/inf). `ns.ScoreAvailable()`: only with `ns.vanillaRules`; on later clients gear has ratings that

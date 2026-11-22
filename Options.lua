@@ -106,7 +106,9 @@ function ns.RefreshOptions()
   end
   local name = ns.PresetName()
   if name then
-    presetStatus:SetText("Score: |cff40ff40" .. name .. "|r")
+    local which = ns.HasTwoTalentGroups()
+      and (ns.ActiveTalentGroup() == 2 and " (your secondary talents)" or " (your primary talents)") or ""
+    presetStatus:SetText("Score" .. which .. ": |cff40ff40" .. name .. "|r")
   else
     presetStatus:SetText("The score is off. Pick a preset (or type a weight) to turn it on.")
   end

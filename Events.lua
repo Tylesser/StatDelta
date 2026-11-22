@@ -75,6 +75,8 @@ eventFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
 eventFrame:RegisterEvent("PLAYER_LEVEL_UP")
 eventFrame:RegisterEvent("UNIT_LEVEL")
 eventFrame:RegisterEvent("SKILL_LINES_CHANGED")
+pcall(eventFrame.RegisterEvent, eventFrame, "ACTIVE_TALENT_GROUP_CHANGED") -- dual spec; not in every game
+eventFrame:RegisterEvent("PLAYER_TALENT_UPDATE") -- also when the talents are first known after a login
 eventFrame:SetScript("OnEvent", function(_, event, loadedName)
   if event == "PLAYER_EQUIPMENT_CHANGED" then
     ns.QueueRefresh()
@@ -88,7 +90,13 @@ eventFrame:SetScript("OnEvent", function(_, event, loadedName)
       ns.QueueRefresh(true)
     end
     return
+  elseif event == "ACTIVE_TALENT_GROUP_CHANGED" or event == "PLAYER_TALENT_UPDATE" then
+    ns.SyncTalentScore() -- one upgrade score per talent group (Score.lua)
+    return
   elseif event == "SKILL_LINES_CHANGED" or event == "PLAYER_LOGIN" then
+    if event == "PLAYER_LOGIN" then
+      ns.SyncTalentScore()
+    end
     local signature = SkillSignature()
     if event == "SKILL_LINES_CHANGED" and skills ~= nil and signature ~= skills then
       ns.QueueRefresh(true)

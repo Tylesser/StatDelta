@@ -242,6 +242,73 @@ local function Changed()
 end
 ns.ScoreChanged = Changed
 
+-- One upgrade score per talent group (dual spec; 2026-11-22). The score in use (preset, weights, edited) belongs to
+-- the active group (talentGroup); a swap puts it away in talentScores[group] and brings back the other
+-- group's. The first time, the new group starts as a copy of the old one. Games without two talent groups stay on 1.
+local function ActiveTalentGroup()
+  if C_SpecializationInfo and type(C_SpecializationInfo.IsInitialized) == "function" then
+    local ok, ready = pcall(C_SpecializationInfo.IsInitialized)
+    if ok and ready == false then
+      return nil -- not known yet (early in a login): no swap
+    end
+  end
+  local group
+  if C_SpecializationInfo and type(C_SpecializationInfo.GetActiveSpecGroup) == "function" then
+    local ok, value = pcall(C_SpecializationInfo.GetActiveSpecGroup)
+    group = ok and value or nil
+  end
+  if group == nil and type(GetActiveTalentGroup) == "function" then
+    local ok, value = pcall(GetActiveTalentGroup)
+    group = ok and value or nil
+  end
+  if group == nil or (issecretvalue and issecretvalue(group)) or type(group) ~= "number" then
+    return 1
+  end
+  return group == 2 and 2 or 1
+end
+ns.ActiveTalentGroup = ActiveTalentGroup
+
+-- Whether the character has two talent groups to switch between (the score line then says which one it is for).
+function ns.HasTwoTalentGroups()
+  local count_fn = GetNumSpecGroups or GetNumTalentGroups -- (the Classic versions' talent frame: GetNumTalentGroups)
+  if type(count_fn) ~= "function" then
+    return false
+  end
+  local ok, count = pcall(count_fn)
+  if not ok or count == nil or (issecretvalue and issecretvalue(count)) or type(count) ~= "number" then
+    return false
+  end
+  return count > 1
+end
+
+-- Follows a talent swap (and a swap made while the addon was off). Returns true when the score changed.
+function ns.SyncTalentScore()
+  local char = ns.charDB
+  if not char then
+    return false
+  end
+  local group, current = ActiveTalentGroup(), char.talentGroup or 1
+  if group == nil then
+    return false
+  end
+  if group == current then
+    char.talentGroup = group
+    return false
+  end
+  char.talentScores = char.talentScores or {}
+  char.talentScores[current] = { preset = char.preset, weights = CopyWeights(char.weights or {}),
+    edited = char.edited and true or false }
+  local saved = char.talentScores[group]
+  if saved then
+    char.preset = saved.preset
+    char.weights = CopyWeights(saved.weights or {})
+    char.edited = saved.edited and true or false
+  end
+  char.talentGroup = group
+  Changed()
+  return true
+end
+
 -- Picks a preset (its weights replace the current ones), or turns the score off with nil.
 function ns.SetPreset(id)
   local char = ns.charDB

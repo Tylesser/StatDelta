@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0
+
+- New: **one upgrade score for each talent group** (dual spec). Switching talents brings back that group's preset and points; the first switch starts from a copy. The score line in the options says which talents it is for.
+
 ## 1.3.0
 
 - Options page: Esc > Options > AddOns > Tylesser - Stat Delta, also opened with `/sdelta` and from the addon menu next to the minimap.
