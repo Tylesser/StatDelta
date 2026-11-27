@@ -151,7 +151,7 @@ function ns.BuildComparisons(link)
           table.insert(comparison.itemLines, { stat.label, rawText, raw })
         end
         -- Your character: totals that include the conversions, when they differ from the above.
-        if ns.CONVERTED[stat.key] then
+        if ns.CONVERTED[stat.key] and (not stat.primary or ns.db.showPrimary) then
           local total = (newTotal[stat.key] or 0) - (oldTotal[stat.key] or 0)
           local text, nonZero = FormatValue(total, stat.fmt)
           if nonZero and text ~= rawText then

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.0
+
+- WoW Forever: **talents that turn one stat into another now count** under "Your character", at the rank you have. Mental Dexterity adds your Intellect to your Attack Power, so a +10 Intellect ring now shows +10 Attack Power for an Enhancement shaman. Also Careful Aim, Mental Quickness, Champion of the Light, Spiritual Guidance and Arcane Resilience, and the talents that raise a stat by a percentage (Ancestral Knowledge, Toughness, Lightning Reflexes and others). The upgrade score and arrows use these totals too. ([#2](https://github.com/Tylesser/StatDelta/issues/2))
+
 ## 1.4.0
 
 - New: **one upgrade score for each talent group** (dual spec). Switching talents brings back that group's preset and points; the first switch starts from a copy. The score line in the options says which talents it is for.

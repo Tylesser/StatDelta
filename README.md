@@ -13,6 +13,7 @@ A World of Warcraft addon that shows **what you gain or lose** if you equip an i
   - Strength and Agility → **Attack Power** and **Ranged Attack Power**
   - Stamina → **Health**, Intellect → **Mana**, Agility → **Armor**
   - At level 60: Agility → **Crit** and **Dodge**, Intellect → **Spell Crit**. These are estimates and start with `~`.
+  - WoW Forever talents, at the rank you have: **Mental Dexterity** and **Careful Aim** (Intellect → Attack Power), **Mental Quickness** and **Champion of the Light** (Intellect → Spell Damage and Healing), **Spiritual Guidance** (Spirit → Spell Damage and Healing), **Arcane Resilience** (Intellect → Armor), and the talents that raise a stat by a percentage (Ancestral Knowledge, Toughness, Lightning Reflexes, Divine Strength, Arcane Mind and others).
 - **Equip effects** are counted: Spell Damage, Healing, damage of one school (Fire, Shadow...), Attack Power, Attack Power in forms, Hit, Crit, Spell Hit, Spell Crit, Mana and Health per 5 sec, Defense, Dodge, Parry, Block, Block Value, ratings.
 - Also: Armor, Weapon DPS, Strength, Agility, Stamina, Intellect, Spirit and resistances.
 - **Rings and trinkets** are compared with both equipped ones, or with the empty slot if you have one free.

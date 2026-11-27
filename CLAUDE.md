@@ -23,6 +23,16 @@ Shared conventions, release steps and the game client are in the workspace file 
   skip (it was skipped before). `ns.IsItemUsable`: false if any tooltip line is red (armor type, weapon skill, class,
   level), cached until the level changes (`PLAYER_LEVEL_UP`, `UNIT_LEVEL` player) or a new skill is learned. `ns.WithConversions` adds the Classic Era conversions per class (Attack Power, Ranged
   Attack Power, Health, Mana, Armor; Crit/Dodge/Spell Crit only at level 60, marked as estimates).
+  WoW Forever talents (2026-11-27, issue #2, Mental Dexterity): `TALENTS` [talent spell] = effects, either `raise`
+  (a stat +x%, applied first) or `from`/`to` (x% of one stat added to others, after the class conversions so
+  gear's "+Attack Power" is the only thing copied to ranged). Percent per rank from Forever's
+  TraitDefinitionEffectPoints curves (wago.tools wowf; check SpellEffect/CurvePoint again when Forever changes
+  talents). Ranks from C_Traits: active config (C_ClassTalents.GetActiveConfigID, else
+  C_SpecializationInfo.GetCombatConfigIDForSpecGroup) -> its treeIDs plus `TALENT_TREES` (the per-spec trees,
+  1082 Enhancement...) -> GetTreeNodes -> GetNodeInfo activeEntry/activeRank -> GetEntryInfo -> GetDefinitionInfo
+  spellID; cached until ACTIVE_TALENT_GROUP_CHANGED / PLAYER_TALENT_UPDATE / TRAIT_CONFIG_UPDATED
+  (`ns.ForgetTalents` + a refresh). Classic Era has no talent config: nothing changes there. `ns.CONVERTED` now
+  also has the primary stats (shown only with `showPrimary`), Spell Damage and Healing.
 - `Tooltip.lua`: maps the item's equip location to the equipped items it would replace (two-handers replace main and
   off hand; one-handers compare with each dual-wielded weapon; rings/trinkets compare with both or with the empty slot),
   and adds one "Stat Delta: Compared to ..." block per comparison to the bottom of the item tooltip, each with an

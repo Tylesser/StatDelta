@@ -559,7 +559,159 @@ local INTELLECT_PER_SPELL_CRIT = {
 }
 local NO_MANA = { WARRIOR = true, ROGUE = true }
 
--- Adds what the item's Strength, Agility, Stamina and Intellect give this character.
+-- WoW Forever's talents ------------------------------------------------------------------------------------
+-- Talents that raise a stat by a percentage, or give a share of one stat as another (2026-11-27, GitHub issue
+-- StatDelta#2: the shaman's Mental Dexterity, Attack Power equal to 100% of Intellect). Keyed by the talent's
+-- spell; the percent per rank comes from Forever's TraitDefinitionEffectPoints curves (wago.tools, product
+-- wowf, build 1.60.1.71139). raise: that stat goes up by the percent; from/to: the percent of "from" is added
+-- to each "to". Raised stats count first ("% of your Intellect" is the raised Intellect), as in the game.
+local TALENTS = {
+  [415140] = { { from = "intellect", to = { "attackPower" }, ranks = { 33, 66, 100 } } }, -- Mental Dexterity
+  [30812] = { { from = "intellect", to = { "spellDamage", "healing" }, ranks = { 15, 30 } } }, -- Mental Quickness
+  [1223984] = { -- Careful Aim
+    { from = "intellect", to = { "attackPower", "rangedAttackPower" }, ranks = { 20, 40, 60, 80, 100 } },
+  },
+  [28574] = { { from = "intellect", to = { "armor" }, ranks = { 25, 50, 75 } } }, -- Arcane Resilience
+  [1311084] = { { from = "intellect", to = { "spellDamage" }, ranks = { 12, 24, 36, 48, 60 } } }, -- Champion of the Light
+  [14901] = { -- Spiritual Guidance
+    { from = "spirit", to = { "spellDamage" }, ranks = { 1, 3, 5, 6, 8 } },
+    { from = "spirit", to = { "healing" }, ranks = { 5, 10, 15, 20, 25 } },
+  },
+  [16252] = { { raise = "stamina", ranks = { 2, 4, 6, 8, 10 } } }, -- Toughness (shaman)
+  [17485] = { { raise = "intellect", ranks = { 2, 4, 6, 8, 10 } } }, -- Ancestral Knowledge
+  [19168] = { { raise = "agility", ranks = { 3, 6, 9, 12, 15 } } }, -- Lightning Reflexes
+  [20257] = { { raise = "intellect", ranks = { 2, 4, 6, 8, 10 } } }, -- Divine Intellect
+  [20262] = { { raise = "strength", ranks = { 2, 4, 6, 8, 10 } } }, -- Divine Strength
+  [11232] = { { raise = "intellect", ranks = { 2, 4, 6, 8, 10 } } }, -- Arcane Mind
+  [18551] = { { raise = "intellect", ranks = { 2, 4, 6, 8, 10 } } }, -- Mental Strength
+  [18697] = { { raise = "stamina", ranks = { 3, 6, 9, 12, 15 } } }, -- Demonic Embrace
+  [1309631] = { { raise = "spirit", ranks = { 5, 10, 15 } } }, -- Living Spirit
+}
+-- The talent trees those talents are in (TraitNode), read besides the trees of the talent config.
+local TALENT_TREES = { 1082, 1089, 1091, 1100, 1112, 1114, 1116 }
+
+local function Plain(value) -- not nil and not a secret value
+  return value ~= nil and (not canaccessvalue or canaccessvalue(value))
+end
+
+local function Call(func, ...)
+  if type(func) ~= "function" then
+    return nil
+  end
+  local ok, result = pcall(func, ...)
+  if ok and Plain(result) then
+    return result
+  end
+  return nil
+end
+
+local function ActiveTalentConfig()
+  local config = C_ClassTalents and Call(C_ClassTalents.GetActiveConfigID)
+  local spec = C_SpecializationInfo
+  if type(config) ~= "number" and spec and spec.GetCombatConfigIDForSpecGroup then
+    local group = Call(spec.GetActiveSpecGroup)
+    config = Call(spec.GetCombatConfigIDForSpecGroup, type(group) == "number" and group or 1)
+  end
+  return type(config) == "number" and config or nil
+end
+
+-- [talent spell] = rank, for the talents above that this character has (C_Traits: the active config's nodes).
+-- Nil when the game has no talent config (Classic Era, or before the talents are known after a login).
+local function ReadTalentRanks()
+  local traits = C_Traits
+  if not (traits and traits.GetTreeNodes and traits.GetNodeInfo and traits.GetEntryInfo and traits.GetDefinitionInfo) then
+    return nil
+  end
+  local config = ActiveTalentConfig()
+  if not config then
+    return nil
+  end
+  local trees, seenTree, seenNode, ranks = {}, {}, {}, {}
+  local function AddTree(tree)
+    if type(tree) == "number" and not seenTree[tree] then
+      seenTree[tree] = true
+      trees[#trees + 1] = tree
+    end
+  end
+  local info = Call(traits.GetConfigInfo, config)
+  if type(info) == "table" and type(info.treeIDs) == "table" then
+    for _, tree in ipairs(info.treeIDs) do
+      AddTree(Plain(tree) and tree)
+    end
+  end
+  for _, tree in ipairs(TALENT_TREES) do
+    AddTree(tree)
+  end
+  for _, tree in ipairs(trees) do
+    local nodes = Call(traits.GetTreeNodes, tree)
+    for _, node in ipairs(type(nodes) == "table" and nodes or {}) do
+      if Plain(node) and not seenNode[node] then
+        seenNode[node] = true
+        local nodeInfo = Call(traits.GetNodeInfo, config, node)
+        local entry = type(nodeInfo) == "table" and nodeInfo.activeEntry
+        local rank = type(nodeInfo) == "table" and Plain(nodeInfo.activeRank) and nodeInfo.activeRank
+        if type(rank) ~= "number" and type(nodeInfo) == "table" and Plain(nodeInfo.ranksPurchased) then
+          rank = nodeInfo.ranksPurchased
+        end
+        if type(entry) == "table" and Plain(entry.entryID) and type(rank) == "number" and rank > 0 then
+          local entryInfo = Call(traits.GetEntryInfo, config, entry.entryID)
+          local definitionID = type(entryInfo) == "table" and Plain(entryInfo.definitionID) and entryInfo.definitionID
+          local definition = definitionID and Call(traits.GetDefinitionInfo, definitionID)
+          local spell = type(definition) == "table" and Plain(definition.spellID) and definition.spellID
+          if spell and TALENTS[spell] then
+            ranks[spell] = rank
+          end
+        end
+      end
+    end
+  end
+  return ranks
+end
+
+local talentRanks -- cached until the talents change (ForgetTalents)
+
+local function TalentRanks()
+  if talentRanks == nil then
+    talentRanks = ReadTalentRanks()
+  end
+  return talentRanks or {}
+end
+
+local function TalentPercent(effect, rank)
+  return (effect.ranks[rank] or effect.ranks[#effect.ranks]) / 100
+end
+
+-- Raises the stats in total (in place) by the character's percentage talents.
+local function RaiseStats(total)
+  for spell, rank in pairs(TalentRanks()) do
+    for _, effect in ipairs(TALENTS[spell]) do
+      if effect.raise and total[effect.raise] then
+        total[effect.raise] = total[effect.raise] * (1 + TalentPercent(effect, rank))
+      end
+    end
+  end
+end
+
+-- Adds what the character's talents give for other stats (in place).
+local function TalentGains(total)
+  for spell, rank in pairs(TalentRanks()) do
+    for _, effect in ipairs(TALENTS[spell]) do
+      local from = effect.from and total[effect.from]
+      if from and from ~= 0 then
+        for _, key in ipairs(effect.to) do
+          total[key] = (total[key] or 0) + from * TalentPercent(effect, rank)
+        end
+      end
+    end
+  end
+end
+
+-- After a talent change (Events): read the ranks again.
+function ns.ForgetTalents()
+  talentRanks = nil
+end
+
+-- Adds what the item's Strength, Agility, Stamina and Intellect give this character, with its talents.
 -- Returns the new table and a set of keys whose value is an estimate.
 function ns.WithConversions(stats)
   local total, estimated = {}, {}
@@ -571,8 +723,9 @@ function ns.WithConversions(stats)
   end
   local _, class = UnitClass("player")
   local _, race = UnitRace("player")
-  local str, agi = stats.strength or 0, stats.agility or 0
-  local sta, int = stats.stamina or 0, stats.intellect or 0
+  RaiseStats(total)
+  local str, agi = total.strength or 0, total.agility or 0
+  local sta, int = total.stamina or 0, total.intellect or 0
 
   local health = (total.health or 0) + sta * 10
   if race == "Tauren" then
@@ -593,6 +746,7 @@ function ns.WithConversions(stats)
       total.rangedAttackPower = (total.rangedAttackPower or 0) + itemAttackPower + agi * ap.rangedAgi
     end
   end
+  TalentGains(total) -- after the gear's "+Attack Power" (which counts for ranged too); a talent names its own
 
   if UnitLevel("player") == 60 then
     if agi ~= 0 then

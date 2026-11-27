@@ -77,6 +77,7 @@ eventFrame:RegisterEvent("UNIT_LEVEL")
 eventFrame:RegisterEvent("SKILL_LINES_CHANGED")
 pcall(eventFrame.RegisterEvent, eventFrame, "ACTIVE_TALENT_GROUP_CHANGED") -- dual spec; not in every game
 eventFrame:RegisterEvent("PLAYER_TALENT_UPDATE") -- also when the talents are first known after a login
+pcall(eventFrame.RegisterEvent, eventFrame, "TRAIT_CONFIG_UPDATED") -- WoW Forever: talents spent or reset
 eventFrame:SetScript("OnEvent", function(_, event, loadedName)
   if event == "PLAYER_EQUIPMENT_CHANGED" then
     ns.QueueRefresh()
@@ -90,8 +91,10 @@ eventFrame:SetScript("OnEvent", function(_, event, loadedName)
       ns.QueueRefresh(true)
     end
     return
-  elseif event == "ACTIVE_TALENT_GROUP_CHANGED" or event == "PLAYER_TALENT_UPDATE" then
+  elseif event == "ACTIVE_TALENT_GROUP_CHANGED" or event == "PLAYER_TALENT_UPDATE" or event == "TRAIT_CONFIG_UPDATED" then
     ns.SyncTalentScore() -- one upgrade score per talent group (Score.lua)
+    ns.ForgetTalents() -- talents that turn one stat into another (Stats.lua)
+    ns.QueueRefresh()
     return
   elseif event == "SKILL_LINES_CHANGED" or event == "PLAYER_LOGIN" then
     if event == "PLAYER_LOGIN" then
