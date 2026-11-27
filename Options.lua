@@ -1,4 +1,5 @@
 local _, ns = ...
+local L = ns.L
 
 -- Options page: Esc > Options > AddOns > Tylesser - Stat Delta
 -- Top: the tooltip settings. Below: the upgrade score (preset buttons and the points per stat).
@@ -36,11 +37,7 @@ end
 local function StatLabel(key)
   for _, stat in ipairs(ns.STATS) do
     if stat.key == key then
-      local label = stat.label
-      if stat.fmt == "pct" then
-        label = label:gsub(" Chance$", "") .. " (1%)"
-      end
-      return label
+      return stat.weightLabel or stat.label -- percent stats: "Crit (1%)"
     end
   end
   return key
@@ -106,11 +103,14 @@ function ns.RefreshOptions()
   end
   local name = ns.PresetName()
   if name then
-    local which = ns.HasTwoTalentGroups()
-      and (ns.ActiveTalentGroup() == 2 and " (your secondary talents)" or " (your primary talents)") or ""
-    presetStatus:SetText("Score" .. which .. ": |cff40ff40" .. name .. "|r")
+    local status = L["Score: %s"]
+    if ns.HasTwoTalentGroups() then
+      status = ns.ActiveTalentGroup() == 2 and L["Score (your secondary talents): %s"]
+        or L["Score (your primary talents): %s"]
+    end
+    presetStatus:SetText(status:format("|cff40ff40" .. name .. "|r"))
   else
-    presetStatus:SetText("The score is off. Pick a preset (or type a weight) to turn it on.")
+    presetStatus:SetText(L["The score is off. Pick a preset (or type a weight) to turn it on."])
   end
   for _, box in ipairs(weightBoxes) do
     if not box:HasFocus() then
@@ -121,7 +121,7 @@ end
 
 local function CreatePresetButtons(y)
   local list = ns.GetPresets()
-  local entries = { { id = false, label = "Off" } }
+  local entries = { { id = false, label = L["Off"] } }
   for _, preset in ipairs(list) do
     table.insert(entries, preset)
   end
@@ -141,7 +141,7 @@ local function CreatePresetButtons(y)
       button:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:AddLine(entry.label)
-        GameTooltip:AddLine("Fills in rough starting values for this role. Your edited values are replaced.",
+        GameTooltip:AddLine(L["Fills in rough starting values for this role. Your edited values are replaced."],
           1, 1, 1, true)
         GameTooltip:Show()
       end)
@@ -155,7 +155,7 @@ local function CreatePresetButtons(y)
   if #list == 0 then
     local none = panel:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     none:SetPoint("LEFT", previous, "RIGHT", 10, 0)
-    none:SetText("No presets for your class: type your own weights below.")
+    none:SetText(L["No presets for your class: type your own weights below."])
   end
   return previous
 end
@@ -179,15 +179,15 @@ function ns.CreateOptions()
 
   local top = ns.T.OPTIONS_TOP
   ns.T.OptionsPage(panel, "Stat Delta",
-    "Hold Shift over an item to see what you gain or lose compared to your gear.")
+    L["Hold Shift over an item to see what you gain or lose compared to your gear."])
 
-  CreateCheck("Show stat changes (hold Shift)", 14, top,
+  CreateCheck(L["Show stat changes (hold Shift)"], 14, top,
     function() return ns.db.enabled end,
     function(value) ns.db.enabled = value; ns.Refresh() end)
-  CreateCheck("Show Strength, Agility, Stamina, Intellect, Spirit", 14, top - 26,
+  CreateCheck(L["Show Strength, Agility, Stamina, Intellect, Spirit"], 14, top - 26,
     function() return ns.db.showPrimary end,
     function(value) ns.db.showPrimary = value; ns.Refresh() end)
-  local heading = ns.T.Heading(panel, "Upgrade score", 560)
+  local heading = ns.T.Heading(panel, L["Upgrade score"], 560)
   heading:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, top - 62)
 
   if not ns.ScoreAvailable() then
@@ -195,18 +195,18 @@ function ns.CreateOptions()
     note:SetPoint("TOPLEFT", heading, "BOTTOMLEFT", 0, -6)
     note:SetWidth(560)
     note:SetJustifyH("LEFT")
-    note:SetText("The upgrade score and the upgrade arrows are for Classic Era and WoW Forever. Gear on this game "
-      .. "version has ratings the score doesn't count, so they're off here.")
+    note:SetText(L["The upgrade score and the upgrade arrows are for Classic Era and WoW Forever."] .. " "
+      .. L["Gear on this game version has ratings the score doesn't count, so they're off here."])
     weightBoxes = {}
     panel:SetScript("OnShow", ns.RefreshOptions)
     RegisterPanel()
     return
   end
 
-  CreateCheck("Show the upgrade score (hold Shift)", RIGHT_X, top,
+  CreateCheck(L["Show the upgrade score (hold Shift)"], RIGHT_X, top,
     function() return ns.db.showScore end,
     function(value) ns.db.showScore = value; ns.ScoreChanged() end)
-  CreateCheck("Show upgrade arrows on items", RIGHT_X, top - 26,
+  CreateCheck(L["Show upgrade arrows on items"], RIGHT_X, top - 26,
     function() return ns.db.showArrows end,
     function(value) ns.db.showArrows = value; ns.ScoreChanged() end)
 
@@ -215,9 +215,9 @@ function ns.CreateOptions()
   help:SetWidth(560)
   help:SetJustifyH("LEFT")
   help:SetTextColor(ns.T.PARCHMENT[1], ns.T.PARCHMENT[2], ns.T.PARCHMENT[3])
-  help:SetText("Points per stat, saved for this character. The score of an item is the sum of its stats times "
-    .. "these points; with Shift, the tooltip shows it against your gear, and upgrades get a green arrow. "
-    .. "The presets are rough starting values for Classic Era, not exact numbers: change them as you like.")
+  help:SetText(L["Points per stat, saved for this character."] .. " "
+    .. L["The score of an item is the sum of its stats times these points; with Shift, the tooltip shows it against your gear, and upgrades get a green arrow."]
+    .. " " .. L["The presets are rough starting values for Classic Era, not exact numbers: change them as you like."])
 
   CreatePresetButtons(top - 128)
   presetStatus = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -229,8 +229,8 @@ function ns.CreateOptions()
   weightHelp:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, top - 174)
   weightHelp:SetWidth(560)
   weightHelp:SetJustifyH("LEFT")
-  weightHelp:SetText("Attack Power, Ranged Attack Power, Health, Mana and Armor include what Strength, Agility, "
-    .. "Stamina and Intellect give you. Weight a stat or what it turns into, not both.")
+  weightHelp:SetText(L["Attack Power, Ranged Attack Power, Health, Mana and Armor include what Strength, Agility, Stamina and Intellect give you."]
+    .. " " .. L["Weight a stat or what it turns into, not both."])
 
   -- the weights, in a scroll frame in case the page is short
   local scroll = CreateFrame("ScrollFrame", nil, panel, "UIPanelScrollFrameTemplate")

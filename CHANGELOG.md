@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.0
+
+- **In your language**: German, French, Spanish, Russian and Brazilian Portuguese game clients now show the addon in their language (other clients stay in English). Russian clients get the game's own font for headings, since the addon's fonts have no Cyrillic letters.
+
 ## 1.5.0
 
 - WoW Forever: **talents that turn one stat into another now count** under "Your character", at the rank you have. Mental Dexterity adds your Intellect to your Attack Power, so a +10 Intellect ring now shows +10 Attack Power for an Enhancement shaman. Also Careful Aim, Mental Quickness, Champion of the Light, Spiritual Guidance and Arcane Resilience, and the talents that raise a stat by a percentage (Ancestral Knowledge, Toughness, Lightning Reflexes and others). The upgrade score and arrows use these totals too. ([#2](https://github.com/Tylesser/StatDelta/issues/2))

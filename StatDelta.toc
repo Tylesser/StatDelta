@@ -12,6 +12,7 @@
 ## X-Website: https://github.com/Tylesser/StatDelta
 
 Tylesser.lua
+Locales.lua
 Core.lua
 Stats.lua
 Score.lua

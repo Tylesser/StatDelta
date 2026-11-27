@@ -1,4 +1,5 @@
 local _, ns = ...
+local L = ns.L
 
 -- Upgrade arrows: a small green arrow on items that score higher than what they would replace.
 -- Shown without Shift (they're the at-a-glance hint), only once a score preset is chosen and while
@@ -207,7 +208,7 @@ local function HookBaganator()
     return
   end
   baganatorDone = true
-  pcall(api.RegisterCornerWidget, "Tylesser - Stat Delta: upgrade", "tylesser_statdelta_upgrade",
+  pcall(api.RegisterCornerWidget, L["Tylesser - Stat Delta: upgrade"], "tylesser_statdelta_upgrade",
     function(_, details)
       if not details then
         return false

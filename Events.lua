@@ -1,4 +1,5 @@
 local addonName, ns = ...
+local L = ns.L
 
 local function CopyDefaults(target, defaults)
   for key, value in pairs(defaults) do
@@ -126,13 +127,13 @@ eventFrame:SetScript("OnEvent", function(_, event, loadedName)
   ns.T.AddCompartment({
     text = ns.TITLE,
     onClick = ns.OpenOptions,
-    tooltip = { "Hold Shift over an item to compare it.", "Click to open the options." },
+    tooltip = { L["Hold Shift over an item to compare it."], L["Click to open the options."] },
   })
   eventFrame:UnregisterEvent("ADDON_LOADED")
 end)
 
 local function OnOff(value)
-  return value and "|cff20ff20on|r" or "|cffff4040off|r"
+  return value and ("|cff20ff20" .. L["on"] .. "|r") or ("|cffff4040" .. L["off"] .. "|r")
 end
 
 SLASH_STATDELTA1 = "/statdelta"
@@ -144,20 +145,20 @@ SlashCmdList.STATDELTA = function(msg)
     return
   elseif msg == "on" or msg == "off" then
     ns.db.enabled = msg == "on"
-    print(ns.PREFIX .. "stat changes " .. OnOff(ns.db.enabled) .. ".")
+    print(ns.PREFIX .. L["stat changes %s."]:format(OnOff(ns.db.enabled)))
   elseif msg == "feedback" then
     ns.T.ShowFeedback()
     return
   elseif msg == "primary" then
     ns.db.showPrimary = not ns.db.showPrimary
-    print(ns.PREFIX .. "Strength, Agility, Stamina, Intellect and Spirit " .. OnOff(ns.db.showPrimary) .. ".")
+    print(ns.PREFIX .. L["Strength, Agility, Stamina, Intellect and Spirit %s."]:format(OnOff(ns.db.showPrimary)))
   else
-    print(ns.PREFIX .. "hold Shift over an item to see the stat changes (" .. OnOff(ns.db.enabled) .. ").")
-    print("  /sdelta: open the options (upgrade score, arrows)")
-    print("  /sdelta on | off: turn the stat changes on or off")
-    print("  /sdelta primary: show or hide Strength, Agility, Stamina, Intellect and Spirit ("
-      .. OnOff(ns.db.showPrimary) .. ")")
-    print("  /sdelta feedback: report a bug or suggest an idea")
+    print(ns.PREFIX .. L["hold Shift over an item to see the stat changes (%s)."]:format(OnOff(ns.db.enabled)))
+    print("  /sdelta: " .. L["open the options (upgrade score, arrows)"])
+    print("  /sdelta on | off: " .. L["turn the stat changes on or off"])
+    print("  /sdelta primary: " .. L["show or hide Strength, Agility, Stamina, Intellect and Spirit (%s)"]:format(
+      OnOff(ns.db.showPrimary)))
+    print("  /sdelta feedback: " .. L["report a bug or suggest an idea"])
   end
   ns.Refresh()
   if ns.RefreshOptions then
