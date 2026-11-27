@@ -2,7 +2,9 @@ local _, ns = ...
 local L = ns.L
 
 -- Options page: Esc > Options > AddOns > Tylesser - Stat Delta
--- Top: the tooltip settings. Below: the upgrade score (preset buttons and the points per stat).
+-- Two sections, each under its heading (2026-11-28, the user's request: the sections ran together; the score's
+-- switches used to sit beside the stat ones, above their own heading): Stat changes, then Upgrade score (its
+-- switches, preset buttons and the points per stat).
 
 local RIGHT_X = 330
 local COLUMNS = 3
@@ -162,13 +164,8 @@ end
 
 -- Esc > Options > AddOns, with the Settings API or the older InterfaceOptions.
 local function RegisterPanel()
-  if Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory then
-    local category = Settings.RegisterCanvasLayoutCategory(panel, ns.TITLE)
-    Settings.RegisterAddOnCategory(category)
-    ns.optionsCategory = category
-  elseif InterfaceOptions_AddCategory then
-    InterfaceOptions_AddCategory(panel)
-  end
+  -- shown in Tylesser's own settings window (Tylesser.lua T.RegisterOptions, 2026-11-28)
+  ns.optionsCategory = ns.T.RegisterOptions(panel, ns.TITLE)
   ns.optionsPanel = panel
 end
 
@@ -181,14 +178,16 @@ function ns.CreateOptions()
   ns.T.OptionsPage(panel, "Stat Delta",
     L["Hold Shift over an item to see what you gain or lose compared to your gear."])
 
-  CreateCheck(L["Show stat changes (hold Shift)"], 14, top,
+  local changes = ns.T.Heading(panel, L["Stat changes"], 560)
+  changes:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, top)
+  CreateCheck(L["Show stat changes (hold Shift)"], 14, top - 22,
     function() return ns.db.enabled end,
     function(value) ns.db.enabled = value; ns.Refresh() end)
-  CreateCheck(L["Show Strength, Agility, Stamina, Intellect, Spirit"], 14, top - 26,
+  CreateCheck(L["Show Strength, Agility, Stamina, Intellect, Spirit"], 14, top - 48,
     function() return ns.db.showPrimary end,
     function(value) ns.db.showPrimary = value; ns.Refresh() end)
   local heading = ns.T.Heading(panel, L["Upgrade score"], 560)
-  heading:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, top - 62)
+  heading:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, top - 86)
 
   if not ns.ScoreAvailable() then
     local note = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -203,15 +202,15 @@ function ns.CreateOptions()
     return
   end
 
-  CreateCheck(L["Show the upgrade score (hold Shift)"], RIGHT_X, top,
+  CreateCheck(L["Show the upgrade score (hold Shift)"], 14, top - 108,
     function() return ns.db.showScore end,
     function(value) ns.db.showScore = value; ns.ScoreChanged() end)
-  CreateCheck(L["Show upgrade arrows on items"], RIGHT_X, top - 26,
+  CreateCheck(L["Show upgrade arrows on items"], RIGHT_X, top - 108,
     function() return ns.db.showArrows end,
     function(value) ns.db.showArrows = value; ns.ScoreChanged() end)
 
   local help = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-  help:SetPoint("TOPLEFT", heading, "BOTTOMLEFT", 0, -6)
+  help:SetPoint("TOPLEFT", heading, "BOTTOMLEFT", 0, -38)
   help:SetWidth(560)
   help:SetJustifyH("LEFT")
   help:SetTextColor(ns.T.PARCHMENT[1], ns.T.PARCHMENT[2], ns.T.PARCHMENT[3])
@@ -219,14 +218,14 @@ function ns.CreateOptions()
     .. L["The score of an item is the sum of its stats times these points; with Shift, the tooltip shows it against your gear, and upgrades get a green arrow."]
     .. " " .. L["The presets are rough starting values for Classic Era, not exact numbers: change them as you like."])
 
-  CreatePresetButtons(top - 128)
+  CreatePresetButtons(top - 192)
   presetStatus = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-  presetStatus:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, top - 156)
+  presetStatus:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, top - 220)
   presetStatus:SetWidth(560)
   presetStatus:SetJustifyH("LEFT")
 
   weightHelp = panel:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-  weightHelp:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, top - 174)
+  weightHelp:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, top - 238)
   weightHelp:SetWidth(560)
   weightHelp:SetJustifyH("LEFT")
   weightHelp:SetText(L["Attack Power, Ranged Attack Power, Health, Mana and Armor include what Strength, Agility, Stamina and Intellect give you."]
@@ -234,7 +233,7 @@ function ns.CreateOptions()
 
   -- the weights, in a scroll frame in case the page is short
   local scroll = CreateFrame("ScrollFrame", nil, panel, "UIPanelScrollFrameTemplate")
-  scroll:SetPoint("TOPLEFT", panel, "TOPLEFT", 14, top - 204)
+  scroll:SetPoint("TOPLEFT", panel, "TOPLEFT", 14, top - 268)
   scroll:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -34, 14)
   local content = CreateFrame("Frame", nil, scroll)
   local rows = math.ceil(#ns.WEIGHT_STATS / COLUMNS)
@@ -250,12 +249,5 @@ function ns.CreateOptions()
 end
 
 function ns.OpenOptions()
-  if ns.optionsCategory and Settings and Settings.OpenToCategory then
-    local id = ns.optionsCategory.GetID and ns.optionsCategory:GetID() or ns.optionsCategory.ID
-    Settings.OpenToCategory(id)
-  elseif panel and InterfaceOptionsFrame_OpenToCategory then
-    -- called twice: the first call only opens the frame on older clients
-    InterfaceOptionsFrame_OpenToCategory(panel)
-    InterfaceOptionsFrame_OpenToCategory(panel)
-  end
+  ns.T.OpenOptions(ns.optionsCategory)
 end

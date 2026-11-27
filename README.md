@@ -32,7 +32,7 @@ The score of an item is the sum of each stat times its points. Attack Power, Ran
 
 ## Usage
 
-Hold Shift while hovering over an item. The options are in Esc > Options > AddOns > Tylesser - Stat Delta, or type `/sdelta`. On WoW Forever and Retail, the addon menu next to the minimap opens them too.
+Hold Shift while hovering over an item. Type `/sdelta` for the options (or Esc > Options > AddOns > Tylesser > Open Tylesser settings). On WoW Forever and Retail, the addon menu next to the minimap opens them too.
 
 - `/sdelta` or `/sdelta options`: open the options (stat changes, upgrade score, arrows)
 - `/sdelta on` / `/sdelta off`: turn the stat changes on or off
