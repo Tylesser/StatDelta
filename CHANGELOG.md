@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.0
+
+- **Best in your bags**: `/sdelta best` (or the **Best in your bags** button in the options) lists in chat the items in your bags that beat what you wear by your upgrade score, one for each slot. Hover an item you wear on the character window and its tooltip names a better one in your bags, like "Better in your bags: [Ring] (Upgrade: +4.2%)".
+- **Upgrade arrows at the auction house**: the green arrow now also marks upgrades in the auction house's lists. In the browse list, gear with a random suffix ("of the Bear") gets no arrow, because its stats depend on the suffix; open the item to see an arrow on each of its auctions.
+
 ## 1.7.0
 
 - **Clearer options page**: the options come in two titled sections, Stat changes and Upgrade score, and the score options sit under their own heading.

@@ -29,6 +29,7 @@ local function RunRefresh()
     pendingForget = false
     ns.ForgetUsable()
   end
+  ns.ForgetBest()
   ns.Refresh()
   if InCombatLockdown and InCombatLockdown() then
     eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
@@ -123,6 +124,7 @@ eventFrame:SetScript("OnEvent", function(_, event, loadedName)
   ns.charDB = StatDeltaCharDB
   ns.HookTooltips()
   ns.HookArrows()
+  ns.HookBest()
   ns.CreateOptions()
   ns.T.AddCompartment({
     text = ns.TITLE,
@@ -149,6 +151,9 @@ SlashCmdList.STATDELTA = function(msg)
   elseif msg == "feedback" then
     ns.T.ShowFeedback()
     return
+  elseif msg == "best" then
+    ns.PrintBest()
+    return
   elseif msg == "primary" then
     ns.db.showPrimary = not ns.db.showPrimary
     print(ns.PREFIX .. L["Strength, Agility, Stamina, Intellect and Spirit %s."]:format(OnOff(ns.db.showPrimary)))
@@ -158,6 +163,7 @@ SlashCmdList.STATDELTA = function(msg)
     print("  /sdelta on | off: " .. L["turn the stat changes on or off"])
     print("  /sdelta primary: " .. L["show or hide Strength, Agility, Stamina, Intellect and Spirit (%s)"]:format(
       OnOff(ns.db.showPrimary)))
+    print("  /sdelta best: " .. L["list the items in your bags that beat what you wear"])
     print("  /sdelta feedback: " .. L["report a bug or suggest an idea"])
   end
   ns.Refresh()

@@ -123,6 +123,16 @@ T.Translations("deDE", {
   ["turn the stat changes on or off"] = "schaltet die Werteänderungen an oder aus",
   ["show or hide Strength, Agility, Stamina, Intellect and Spirit (%s)"] = "zeigt oder verbirgt Stärke, Beweglichkeit, Ausdauer, Intelligenz und Willenskraft (%s)",
   ["report a bug or suggest an idea"] = "einen Fehler melden oder eine Idee vorschlagen",
+  ["Pick an upgrade score in the options first."] = "Wähle zuerst in den Optionen eine Upgrade-Bewertung.",
+  ["Some items are still loading; try again in a moment."] = "Einige Gegenstände werden noch geladen; versuch es gleich noch einmal.",
+  ["Nothing in your bags beats what you wear."] = "Nichts in deinen Taschen ist besser als das, was du trägst.",
+  ["Better in your bags:"] = "Besser in deinen Taschen:",
+  ["%s in an empty slot (%s)"] = "%s in einen leeren Platz (%s)",
+  ["%s instead of %s (%s)"] = "%s statt %s (%s)",
+  ["Better in your bags: %s (%s)"] = "Besser in deinen Taschen: %s (%s)",
+  ["Best in your bags"] = "Bestes in den Taschen",
+  ["Lists in chat the items in your bags that beat what you wear by this score, one for each slot. The tooltip of an item you wear names a better one too."] = "Listet im Chat die Gegenstände in deinen Taschen auf, die nach dieser Bewertung besser sind als das, was du trägst, einen pro Platz. Auch der Tooltip eines getragenen Gegenstands nennt einen besseren.",
+  ["list the items in your bags that beat what you wear"] = "listet die Gegenstände in deinen Taschen auf, die besser sind als das, was du trägst",
 })
 
 T.Translations("frFR", {
@@ -245,6 +255,16 @@ T.Translations("frFR", {
   ["turn the stat changes on or off"] = "active ou désactive les changements de caractéristiques",
   ["show or hide Strength, Agility, Stamina, Intellect and Spirit (%s)"] = "affiche ou masque Force, Agilité, Endurance, Intelligence et Esprit (%s)",
   ["report a bug or suggest an idea"] = "signaler un bug ou proposer une idée",
+  ["Pick an upgrade score in the options first."] = "Choisissez d'abord un score d'amélioration dans les options.",
+  ["Some items are still loading; try again in a moment."] = "Certains objets se chargent encore ; réessayez dans un instant.",
+  ["Nothing in your bags beats what you wear."] = "Rien dans vos sacs ne vaut mieux que ce que vous portez.",
+  ["Better in your bags:"] = "Mieux dans vos sacs :",
+  ["%s in an empty slot (%s)"] = "%s dans un emplacement vide (%s)",
+  ["%s instead of %s (%s)"] = "%s au lieu de %s (%s)",
+  ["Better in your bags: %s (%s)"] = "Mieux dans vos sacs : %s (%s)",
+  ["Best in your bags"] = "Le meilleur des sacs",
+  ["Lists in chat the items in your bags that beat what you wear by this score, one for each slot. The tooltip of an item you wear names a better one too."] = "Liste dans la discussion les objets de vos sacs qui valent mieux que ce que vous portez selon ce score, un par emplacement. L'infobulle d'un objet porté en nomme aussi un meilleur.",
+  ["list the items in your bags that beat what you wear"] = "liste les objets de vos sacs qui valent mieux que ce que vous portez",
 })
 
 T.Translations("esES", {
@@ -367,6 +387,16 @@ T.Translations("esES", {
   ["turn the stat changes on or off"] = "activa o desactiva los cambios de estadísticas",
   ["show or hide Strength, Agility, Stamina, Intellect and Spirit (%s)"] = "muestra u oculta Fuerza, Agilidad, Aguante, Intelecto y Espíritu (%s)",
   ["report a bug or suggest an idea"] = "informar de un error o proponer una idea",
+  ["Pick an upgrade score in the options first."] = "Elige primero una puntuación de mejora en las opciones.",
+  ["Some items are still loading; try again in a moment."] = "Algunos objetos aún se están cargando; inténtalo de nuevo en un momento.",
+  ["Nothing in your bags beats what you wear."] = "Nada en tus bolsas supera lo que llevas puesto.",
+  ["Better in your bags:"] = "Mejor en tus bolsas:",
+  ["%s in an empty slot (%s)"] = "%s en una casilla vacía (%s)",
+  ["%s instead of %s (%s)"] = "%s en lugar de %s (%s)",
+  ["Better in your bags: %s (%s)"] = "Mejor en tus bolsas: %s (%s)",
+  ["Best in your bags"] = "Lo mejor de tus bolsas",
+  ["Lists in chat the items in your bags that beat what you wear by this score, one for each slot. The tooltip of an item you wear names a better one too."] = "Muestra en el chat los objetos de tus bolsas que superan lo que llevas puesto según esta puntuación, uno por casilla. La descripción de un objeto que llevas puesto también nombra uno mejor.",
+  ["list the items in your bags that beat what you wear"] = "muestra los objetos de tus bolsas que superan lo que llevas puesto",
 })
 
 T.Translations("ruRU", {
@@ -489,6 +519,16 @@ T.Translations("ruRU", {
   ["turn the stat changes on or off"] = "включить или выключить изменения характеристик",
   ["show or hide Strength, Agility, Stamina, Intellect and Spirit (%s)"] = "показать или скрыть силу, ловкость, выносливость, интеллект и дух (%s)",
   ["report a bug or suggest an idea"] = "сообщить об ошибке или предложить идею",
+  ["Pick an upgrade score in the options first."] = "Сначала выберите оценку улучшения в настройках.",
+  ["Some items are still loading; try again in a moment."] = "Некоторые предметы ещё загружаются; попробуйте чуть позже.",
+  ["Nothing in your bags beats what you wear."] = "В ваших сумках нет ничего лучше того, что на вас надето.",
+  ["Better in your bags:"] = "Лучше в ваших сумках:",
+  ["%s in an empty slot (%s)"] = "%s в пустую ячейку (%s)",
+  ["%s instead of %s (%s)"] = "%s вместо %s (%s)",
+  ["Better in your bags: %s (%s)"] = "Лучше в ваших сумках: %s (%s)",
+  ["Best in your bags"] = "Лучшее в сумках",
+  ["Lists in chat the items in your bags that beat what you wear by this score, one for each slot. The tooltip of an item you wear names a better one too."] = "Выводит в чат предметы из ваших сумок, которые по этой оценке лучше надетых, по одному на ячейку. Подсказка надетого предмета тоже называет лучший.",
+  ["list the items in your bags that beat what you wear"] = "показать предметы в сумках, которые лучше надетых",
 })
 
 T.Translations("ptBR", {
@@ -611,4 +651,14 @@ T.Translations("ptBR", {
   ["turn the stat changes on or off"] = "ativa ou desativa as mudanças de atributos",
   ["show or hide Strength, Agility, Stamina, Intellect and Spirit (%s)"] = "mostra ou oculta Força, Agilidade, Vigor, Intelecto e Espírito (%s)",
   ["report a bug or suggest an idea"] = "relatar um erro ou sugerir uma ideia",
+  ["Pick an upgrade score in the options first."] = "Escolha primeiro uma pontuação de melhoria nas opções.",
+  ["Some items are still loading; try again in a moment."] = "Alguns itens ainda estão carregando; tente de novo daqui a pouco.",
+  ["Nothing in your bags beats what you wear."] = "Nada nas suas bolsas supera o que você está usando.",
+  ["Better in your bags:"] = "Melhor nas suas bolsas:",
+  ["%s in an empty slot (%s)"] = "%s em um espaço vazio (%s)",
+  ["%s instead of %s (%s)"] = "%s em vez de %s (%s)",
+  ["Better in your bags: %s (%s)"] = "Melhor nas suas bolsas: %s (%s)",
+  ["Best in your bags"] = "O melhor das bolsas",
+  ["Lists in chat the items in your bags that beat what you wear by this score, one for each slot. The tooltip of an item you wear names a better one too."] = "Lista no chat os itens das suas bolsas que superam o que você está usando por esta pontuação, um por espaço. A dica de um item que você usa também indica um melhor.",
+  ["list the items in your bags that beat what you wear"] = "lista os itens das suas bolsas que superam o que você está usando",
 })

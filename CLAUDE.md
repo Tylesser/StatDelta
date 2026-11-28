@@ -78,6 +78,26 @@ Shared conventions, release steps and the game client are in the workspace file 
   `GET_ITEM_INFO_RECEIVED` (through `ns.QueueRefresh`). DialogueUI is not hooked: its `DialogueUIAPI.AddItemEvaluator` replaces DialogueUI's own
   item-level arrows for everyone, allows one evaluator (Pawn's), and only takes effect after its "Evaluate Item
   Rewards" option is toggled (the public call doesn't refresh it).
+- Upgrade decision (2026-11-28): `ns.UpgradeChoices(link)` = one `{ slot, altSlot, new, old, links }` per
+  comparison of `ns.FindReplaced` (each comparison now carries `.slot`, the inventory slot, and `.altSlot` when both
+  ring / trinket slots are empty), cached per link until `ns.RefreshArrows`; `ns.BestUpgrade(link)` the one it beats
+  by the most points; `ns.IsUpgrade` = BestUpgrade gated by the arrows option. Needs `ns.ActiveWeights()`, not the
+  arrows option, so best in bags and the auction house work with the arrows off.
+- Auction house arrows (Arrows.lua, 2026-11-28): post hooks on the table builder's `AddRow` / `RemoveRow` of
+  `AuctionHouseFrame.BrowseResultsFrame.ItemList` and `.ItemBuyFrame.ItemList` (forever Blizzard_AuctionHouseUI
+  Shared/Blizzard_AuctionHouseItemList.lua; SharedXML TableBuilderMixin:AddRow sets `row.rowData`, then the cells;
+  the builder exists after the list's `Init`, which is hooked when it's missing), hooked at ADDON_LOADED
+  Blizzard_AuctionHouseUI (or at once). Browse rows are item keys: only `itemSuffix` 0 gets an arrow ("item:<id>");
+  ItemBuyFrame rows have `itemLink`. The arrow is on a child frame of the row 10 levels up, at the shown `cell.Icon`'s
+  top right (cells are pooled: placed again per AddRow).
+- `Best.lua` (2026-11-28): `ns.BestInBags()` = for each slot the bag item (bags 0..NUM_BAG_SLOTS) with the largest
+  gain, each bag item for one slot only (biggest gain first; `altSlot` for the second empty ring / trinket slot);
+  `{ list, bySlot, loading }`, kept until BAG_UPDATE_DELAYED / `ns.ForgetBest` (from RefreshArrows and the queued
+  refresh), not kept while an item is loading. `ns.PrintBest()` (`/sdelta best`, the options' "Best in your bags"
+  button). `ns.AddBestLine(tooltip, link)` from Tooltip.lua's post call: "Better in your bags: [item] (Upgrade:
+  +x%)" without Shift, only while `ns.ScoreShown()`, only when the tooltip's owner is named `...Slot` (the character
+  window's Character<Slot>Slot buttons), its ID is the slot and that slot holds the item. The twin is Codex's
+  Modules/StatDelta/Best.lua (same code, `S.`).
 - `Options.lua`: Esc > Options > AddOns > Tylesser - Stat Delta (`ns.T.OptionsPage`, Settings API or
   `InterfaceOptions_AddCategory`): four check boxes, preset buttons for the player's class ("Off" + roles), and a
   scrolling grid of weight edit boxes (`T.EditBox`; typing a weight with no preset starts a "custom" score).
@@ -86,7 +106,7 @@ Shared conventions, release steps and the game client are in the workspace file 
   one refresh 0.5 s after the first event of a burst (equipment changes fire per slot), arrows deferred to
   `PLAYER_REGEN_ENABLED` in combat; usable items are forgotten only on level changes and when the set of learned skill
   names changes (`GetNumSkillLines`/`GetSkillLineInfo`; skill-ups don't count); and the slash commands
-  `/sdelta` and `/statdelta` (no argument or `options`: open the options; `on`, `off`, `primary`, `feedback`; anything
+  `/sdelta` and `/statdelta` (no argument or `options`: open the options; `on`, `off`, `primary`, `best`, `feedback`; anything
   else prints the help).
 
 ## Rules

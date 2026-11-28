@@ -41,25 +41,29 @@ local function Equipped(slot)
 end
 
 -- Returns a list of comparisons; each one lists the equipped links the item would replace
--- (an empty list means an empty slot).
+-- (an empty list means an empty slot) and has .slot, the inventory slot it would go in (.altSlot: a
+-- second empty slot it could go in instead).
 local function FindReplaced(link, equipLoc)
   local mainHand, offHand = Equipped(MAIN_HAND), Equipped(OFF_HAND)
   local mainIsTwoHand = IsTwoHand(EquipLoc(mainHand))
 
   if IsTwoHand(equipLoc) then
-    return { { mainHand, offHand } }
+    return { { mainHand, offHand, slot = MAIN_HAND } }
   elseif OFF_HAND_TYPES[equipLoc] then
     -- An off-hand item takes the place of a two-handed weapon.
-    return { { mainIsTwoHand and mainHand or offHand } }
+    if mainIsTwoHand then
+      return { { mainHand, slot = MAIN_HAND } }
+    end
+    return { { offHand, slot = OFF_HAND } }
   elseif ONE_HAND[equipLoc] then
-    local list = { { mainHand } }
+    local list = { { mainHand, slot = MAIN_HAND } }
     if equipLoc == "INVTYPE_WEAPON" and offHand and EquipLoc(offHand) ~= "INVTYPE_SHIELD"
       and EquipLoc(offHand) ~= "INVTYPE_HOLDABLE" then
-      table.insert(list, { offHand }) -- dual wield: it could replace either weapon
+      table.insert(list, { offHand, slot = OFF_HAND }) -- dual wield: it could replace either weapon
     end
     return list
   elseif RANGED_TYPES[equipLoc] then
-    return { { Equipped(RANGED) } }
+    return { { Equipped(RANGED), slot = RANGED } }
   end
 
   local slots = SLOTS[equipLoc]
@@ -67,17 +71,18 @@ local function FindReplaced(link, equipLoc)
     return nil
   end
   if #slots == 1 then
-    return { { Equipped(slots[1]) } }
+    return { { Equipped(slots[1]), slot = slots[1] } }
   end
   -- Rings and trinkets: an empty slot is where it would go; otherwise compare with both.
   local first, second = Equipped(slots[1]), Equipped(slots[2])
   if first == link or second == link then
-    return { { link } } -- already equipped; BuildComparisons skips it
+    return { { link, slot = first == link and slots[1] or slots[2] } } -- already equipped; BuildComparisons skips it
   end
   if not first or not second then
-    return { {} }
+    -- (altSlot: both are empty, so it could go in either)
+    return { { slot = first and slots[2] or slots[1], altSlot = not first and not second and slots[2] or nil } }
   end
-  return { { first }, { second } }
+  return { { first, slot = slots[1] }, { second, slot = slots[2] } }
 end
 ns.FindReplaced = FindReplaced
 
@@ -318,6 +323,11 @@ local function OnTemplateItem(tooltip)
   end
   WatchTemplateTooltip(tooltip)
   AddComparisons(tooltip)
+  -- an item you wear, on the character window: a better one in your bags (Best.lua)
+  local ok, link = pcall(ItemLink, tooltip)
+  if ok and link and ns.AddBestLine then
+    ns.AddBestLine(tooltip, link)
+  end
 end
 
 -- Custom tooltips (DialogueUI and others built the same way).

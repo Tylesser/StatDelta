@@ -21,6 +21,8 @@ A World of Warcraft addon that shows **what you gain or lose** if you equip an i
 - Set bonuses, "Use:" and "Chance on hit:" effects are not counted.
 - **Upgrade score (optional):** pick a preset for your class and role in the options (for example Warrior Tank or DPS, Priest Healer or Shadow, Druid Bear, Cat, Healer or Balance) and Stat Delta adds a line like **Upgrade: +4.2%** under each "Compared to" heading: green if the item scores higher than what you wear, red if lower. When the equipped item scores 0 (or the slot is empty), it shows the difference in points instead. The presets are **rough starting values** for Classic Era, not exact numbers: you can change the points for every stat. The score is saved per character (one for each talent group if you have dual spec: switching talents brings back that group's score) and is off until you pick a preset. Choosing "Off" clears the points. The score is made for **Classic Era and WoW Forever**: on other game versions gear has ratings the score doesn't count, so the score and the arrows are off there.
 - **Upgrade arrows:** once you've picked a preset, items that score higher than what they'd replace get a small green arrow in the top right corner in your bags (Blizzard's bags and Baganator) and on quest rewards. The arrows don't need Shift. Items your character can't use yet (wrong armor type or weapon skill, level too low) get no arrow. You can turn the arrows off in the options.
+- **Upgrade arrows at the auction house:** the same arrow marks upgrades in the auction house's lists. In the browse list, gear with a random suffix ("of the Bear") gets no arrow, because its stats come with the suffix; open the item and each of its auctions shows one.
+- **Best in your bags:** `/sdelta best`, or the **Best in your bags** button in the options, lists in chat the items in your bags that beat what you wear, one for each slot (a bag item is offered for one slot only, the biggest gain first). Hover an item you wear on the character window and its tooltip names a better one in your bags: "Better in your bags: [Ring] (Upgrade: +4.2%)". Needs an upgrade score, like the arrows.
 
 On other game versions (TBC, Wrath, Mists, Retail) the addon shows only the stats printed on the items, without the conversions.
 
@@ -37,6 +39,7 @@ Hold Shift while hovering over an item. Type `/sdelta` for the options (or Esc >
 - `/sdelta` or `/sdelta options`: open the options (stat changes, upgrade score, arrows)
 - `/sdelta on` / `/sdelta off`: turn the stat changes on or off
 - `/sdelta primary`: show or hide Strength, Agility, Stamina, Intellect and Spirit
+- `/sdelta best`: list the items in your bags that beat what you wear
 - `/sdelta feedback`: get the link to report a bug or suggest an idea
 
 Languages: English, German, French, Spanish (Spain and Mexico), Russian and Brazilian Portuguese, following your game client.
